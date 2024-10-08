@@ -20,9 +20,43 @@ app = FastAPI()
 # Initialize FastAPI app
 
 
+# Configure logging to output all request details
+logging.basicConfig(level=logging.INFO)
+
+# Pydantic model for handling incoming webhook data
+class TelegramWebhook(BaseModel):
+    '''
+    Telegram Webhook Model using Pydantic for request body validation
+    '''
+    update_id: int
+    message: Optional[dict] = None
+    edited_message: Optional[dict] = None
+    channel_post: Optional[dict] = None
+    edited_channel_post: Optional[dict] = None
+    inline_query: Optional[dict] = None
+    chosen_inline_result: Optional[dict] = None
+    callback_query: Optional[dict] = None
+    shipping_query: Optional[dict] = None
+    pre_checkout_query: Optional[dict] = None
+    poll: Optional[dict] = None
+    poll_answer: Optional[dict] = None
+
+import os
+from typing import Optional
+
+from fastapi import FastAPI
+from pydantic import BaseModel
+import logging
+from telegram import Bot
+from telegram.error import TelegramError
+
+# Telegram Bot Token
+Token = "7726243665:AAHgsI4RR2feW0Rotraru5V2_mJYe1dT170"
+bot = Bot(Token)
+
 # Group A and Group B IDs (replace these with actual group chat IDs)
-GROUP_A_ID = -1001234567890  # Replace with actual Group A ID
-GROUP_B_ID = -1009876543210  # Replace with actual Group B ID
+GROUP_A_ID = -4561562870  # Replace with actual Group A ID
+GROUP_B_ID = -4579233480  # Replace with actual Group B ID
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -37,6 +71,16 @@ class TelegramWebhook(BaseModel):
     '''
     update_id: int
     message: Optional[dict] = None
+    edited_message: Optional[dict] = None
+    channel_post: Optional[dict] = None
+    edited_channel_post: Optional[dict] = None
+    inline_query: Optional[dict] = None
+    chosen_inline_result: Optional[dict] = None
+    callback_query: Optional[dict] = None
+    shipping_query: Optional[dict] = None
+    pre_checkout_query: Optional[dict] = None
+    poll: Optional[dict] = None
+    poll_answer: Optional[dict] = None
 
 
 @app.post("/webhook")
@@ -45,61 +89,116 @@ async def webhook(webhook_data: TelegramWebhook):
         print(webhook_data.message)
         # Extract message information
         message = webhook_data.message
+
         chat_id = message['chat']['id']
-        text = message.get('text')
-        reply_to_message = message.get('reply_to_message')
-        photo = message.get('photo')  # For handling photo messages
-        document = message.get('document')  # For handling document messages
-        video = message.get('video')  # For handling video messages
-        caption = message.get('caption')  # Caption for media
         message_id = message['message_id']
-        
-        try:
-            # If the message is from Group A, forward to Group B
-            if chat_id == GROUP_A_ID:
-                await forward_message(GROUP_B_ID, text, photo, document, video, caption, reply_to_message)
 
-            # If the message is from Group B, forward to Group A
-            elif chat_id == GROUP_B_ID:
-                await forward_message(GROUP_A_ID, text, photo, document, video, caption, reply_to_message)
-
-        except TelegramError as e:
-            logging.error(f"Telegram API error: {e}")
+        # Check if message is from Group A or Group B
+        target_group_id = GROUP_B_ID if chat_id == GROUP_A_ID else GROUP_A_ID if chat_id == GROUP_B_ID else None
+        if target_group_id:
+            await forward_message(target_group_id, message)
 
     return {"message": "ok"}
 
-
-async def forward_message(target_group_id: int, text: Optional[str], photo: Optional[list], 
-                          document: Optional[dict], video: Optional[dict], caption: Optional[str], 
-                          reply_to_message: Optional[dict]):
+async def forward_message(target_group_id: int, message: dict):
     """
-    Forwards messages, handles text, replies, and media (photos, videos, documents).
+    Dynamically forwards the entire content of the message without the "forwarded" tag.
+    Handles various message types like text, photos, videos, audio, stickers, location, contacts, etc.
     """
     try:
         # Handle text messages
-        if text:
-            if reply_to_message:
-                original_text = reply_to_message.get('text', 'Message')
-                text = f"Reply to: {original_text}\n{text}"
-            await bot.send_message(chat_id=target_group_id, text=text)
+        # Check if the message has text
+        if 'text' in message:
+            # Check if the message is a reply
+            if 'reply_to_message' in message:
+                reply_to_message = message['reply_to_message']
+                original_message_preview = reply_to_message['text'][:50]  # Get the first 50 characters of the original message
+                reply_message = (
+                    f"*🔄 {reply_to_message['from']['first_name']}*:\n"
+                    f"{original_message_preview}...\n\n"  # Original message preview with ellipsis
+                    f"{message['text']}"  # Current message
+                )
+
+                # Send formatted reply message
+                await bot.send_message(
+                    chat_id=target_group_id,
+                    text=reply_message,
+                    parse_mode='Markdown'  # Use Markdown for formatting
+                )
+            else:
+                # If it's not a reply, just send the original message text
+                await bot.send_message(chat_id=target_group_id, text=message['text'])
+
 
         # Handle photo messages
-        elif photo:
-            largest_photo = photo[-1]['file_id']  # The largest version of the photo
+        if 'photo' in message:
+            largest_photo = message['photo'][-1]['file_id']
+            caption = message.get('caption', None)
             await bot.send_photo(chat_id=target_group_id, photo=largest_photo, caption=caption)
 
-        # Handle document messages
-        elif document:
-            file_id = document['file_id']
-            await bot.send_document(chat_id=target_group_id, document=file_id, caption=caption)
-
         # Handle video messages
-        elif video:
-            file_id = video['file_id']
-            await bot.send_video(chat_id=target_group_id, video=file_id, caption=caption)
+        if 'video' in message:
+            video = message['video']
+            await bot.send_video(chat_id=target_group_id, video=video['file_id'], caption=message.get('caption', None),
+                                 duration=video.get('duration'), width=video.get('width'), height=video.get('height'))
+
+        # Handle document messages (like PDFs, files)
+        if 'document' in message:
+            document = message['document']
+            await bot.send_document(chat_id=target_group_id, document=document['file_id'], caption=message.get('caption', None),
+                                    filename=document.get('file_name'))
+
+        # Handle audio messages
+        if 'audio' in message:
+            audio = message['audio']
+            await bot.send_audio(chat_id=target_group_id, audio=audio['file_id'], caption=message.get('caption', None),
+                                 duration=audio.get('duration'))
+
+        # Handle voice messages
+        if 'voice' in message:
+            voice = message['voice']
+            await bot.send_voice(chat_id=target_group_id, voice=voice['file_id'], duration=voice.get('duration'))
+
+        # Handle animation (GIF) messages
+        if 'animation' in message:
+            animation = message['animation']
+            await bot.send_animation(chat_id=target_group_id, animation=animation['file_id'], caption=message.get('caption', None))
+
+        # Handle stickers
+        if 'sticker' in message:
+            sticker = message['sticker']
+            await bot.send_sticker(chat_id=target_group_id, sticker=sticker['file_id'])
+
+        # Handle locations
+        if 'location' in message:
+            location = message['location']
+            await bot.send_location(chat_id=target_group_id, latitude=location['latitude'], longitude=location['longitude'])
+
+        # Handle venues (detailed locations)
+        if 'venue' in message:
+            venue = message['venue']
+            await bot.send_venue(chat_id=target_group_id, latitude=venue['location']['latitude'], longitude=venue['location']['longitude'],
+                                 title=venue['title'], address=venue['address'])
+
+        # Handle contacts
+        if 'contact' in message:
+            contact = message['contact']
+            await bot.send_contact(chat_id=target_group_id, phone_number=contact['phone_number'], first_name=contact['first_name'])
+
+        # Handle polls
+        if 'poll' in message:
+            poll = message['poll']
+            options = [option['text'] for option in poll['options']]
+            await bot.send_poll(chat_id=target_group_id, question=poll['question'], options=options)
+
+        # Handle video notes (circular videos)
+        if 'video_note' in message:
+            video_note = message['video_note']
+            await bot.send_video_note(chat_id=target_group_id, video_note=video_note['file_id'], duration=video_note.get('duration'))
 
     except TelegramError as e:
         logging.error(f"Failed to forward message: {e}")
+
 
 
 @app.get("/")
