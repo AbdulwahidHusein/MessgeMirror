@@ -125,7 +125,28 @@ target_group_id = None
 @app.post("/webhook")
 async def webhook(webhook_data: TelegramWebhook):
     if webhook_data.message:
-        await process_message(webhook_data.message)
+        if webhook_data.chat.type == "group":
+            await process_message(webhook_data.message)
+        else:
+        
+            command = webhook_data.message.get("text")
+            if command == "/start":
+                pass
+            elif command == "/add-pair":
+                pass
+            elif command == "/remove-pair":
+                pass
+            elif command == "/list-pairs":
+                pass
+            elif command == "/help":
+                pass
+            elif command == "add-whitelist":
+                pass
+            elif command == "remove-whitelist":
+                pass
+            else:
+                pass
+            
     return {"message": "ok"}
 
 
@@ -161,7 +182,10 @@ async def forward_message(target_group_id: int, message: dict):
             # Check if the message is a reply
             if 'reply_to_message' in message:
                 reply_to_message = message['reply_to_message']
-                original_message_preview = reply_to_message['text'][:50]  # Get the first 50 characters of the original message
+                if "text" in reply_to_message:  
+                    original_message_preview = reply_to_message['text'][:50]  # Get the first 50 characters of the original message
+                else:
+                    original_message_preview = ""  # If the original message is not a text message, use "Message"
                 reply_message = (
                     f"*🔄 {reply_to_message['from']['first_name']}*:\n"
                     f"{original_message_preview}...\n\n"  # Original message preview with ellipsis
