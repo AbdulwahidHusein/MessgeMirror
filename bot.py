@@ -63,6 +63,7 @@ GROUP_B_ID = -4579233480  # Replace with actual Group B ID
 app = FastAPI()
 # Initialize FastAPI app
 
+from test import SessionManager
 
 # Configure logging to output all request details
 logging.basicConfig(level=logging.INFO)
@@ -122,31 +123,19 @@ message_buffer = []
 aggregation_timer = None
 target_group_id = None
 
+
 @app.post("/webhook")
 async def webhook(webhook_data: TelegramWebhook):
+    print(webhook_data.message)
     if webhook_data.message:
-        if webhook_data.chat.type == "group":
+        if webhook_data.message['chat']['type'] == "group":
             await process_message(webhook_data.message)
         else:
+            session_manager = SessionManager(bot, webhook_data.message)
+            await session_manager.handle_message()
+            print(webhook_data.message)
         
-            command = webhook_data.message.get("text")
-            if command == "/start":
-                pass
-            elif command == "/add-pair":
-                pass
-            elif command == "/remove-pair":
-                pass
-            elif command == "/list-pairs":
-                pass
-            elif command == "/help":
-                pass
-            elif command == "add-whitelist":
-                pass
-            elif command == "remove-whitelist":
-                pass
-            else:
-                pass
-            
+
     return {"message": "ok"}
 
 
@@ -154,7 +143,7 @@ async def process_message(message: dict):
     """
     Process the incoming message and forward it to the appropriate group.
     """
-    chat_id = message['chat']['id']
+    chat_id = message['chat']['id'] 
     target_group_id = get_target_group_id(chat_id)
 
     if target_group_id:
