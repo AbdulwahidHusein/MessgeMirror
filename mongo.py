@@ -13,8 +13,8 @@ db = client['messagemerror']
 group_pair_collection = db['GroupPair']
 
 # Create
-def create_group_pair(group1_id, group2_id):
-    return group_pair_collection.insert_one({'group1_id': group1_id, 'group2_id': group2_id})
+def create_group_pair(group1_data, group2_data):
+    return group_pair_collection.insert_one({'group2_data': group1_data, 'group1_data': group2_data})
 
 # Read
 def get_group_pairs():
@@ -23,11 +23,18 @@ def get_group_pairs():
 
 
 # Delete
-def delete_group_pair(group1_id, group2_id):
+def delete_group_pair(group1_data, group2_data):
     return group_pair_collection.delete_one({
-        'group1_id': group1_id,
-        'group2_id': group2_id
+        'group1_data': group1_data,
+        'group2_data': group2_data
     })
+    
+def has_group_pair(group_id):
+    possibility1 = group_pair_collection.find_one({'group1_data.id': group_id})
+    possibility2 = group_pair_collection.find_one({'group2_data.id': group_id})
+    
+    return possibility1 is not None or possibility2 is not None
+
 
 
 
@@ -73,32 +80,44 @@ def delete_blacklist_entry(userid):
 
 
 session_collection = db['Session']
+def create_session(user_id, session_name, previous_data):
+    existing_session = session_collection.find_one({'user_id': user_id})
+    if existing_session:
+        return existing_session  # Do not create a new session if one exists
 
-# Create
-def create_session(user_id, session_name):
     session_collection.insert_one({
         'user_id': user_id,
         'created_at': datetime.now(),
-        'session_name': session_name
+        'session_name': session_name,
+        'previous_data': previous_data
     })
-    
-    added_session = session_collection.find_one({'user_id': user_id})
-    return added_session
 
-
+    return session_collection.find_one({'user_id': user_id})
 
 # Update
-def update_session( user_id=None, session_name=None):
+def update_session(user_id=None, session_name=None, previous_data=None):
     update_fields = {}
     if session_name is not None:
         update_fields['session_name'] = session_name
-    return session_collection.update_one({'userid': user_id}, {'$set': update_fields})
+    if previous_data is not None:
+        update_fields['previous_data'] = previous_data
 
+    result = session_collection.update_one({'user_id': user_id}, {'$set': update_fields})
+
+    # If no session existed, create one
+    if result.matched_count == 0:
+        return create_session(user_id, session_name, previous_data)
+
+    return session_collection.find_one({'user_id': user_id})
+
+# Get
 def get_sessions_by_user_id(user_id):
-    return list(session_collection.find({'user_id': user_id}))
+    session = session_collection.find_one({'user_id': user_id})
+    if session is None:
+        # Create a new session if it does not exist
+        return create_session(user_id, "default_session_name", "default_previous_data")
+    return session
 
 # Delete
-def delete_session(userid):
-    return session_collection.delete_one({'userid': userid})
-
-
+def delete_session(user_id):
+    return session_collection.delete_one({'user_id': user_id})

@@ -6,6 +6,7 @@ from pydantic import BaseModel
 import logging
 from telegram import Bot, Message
 from telegram.error import TelegramError
+from model import TelegramWebhook
 
 # Telegram Bot Token
 Token = "7726243665:AAHgsI4RR2feW0Rotraru5V2_mJYe1dT170"
@@ -69,22 +70,7 @@ from test import SessionManager
 logging.basicConfig(level=logging.INFO)
 
 # Pydantic model for handling incoming webhook data
-class TelegramWebhook(BaseModel):
-    '''
-    Telegram Webhook Model using Pydantic for request body validation
-    '''
-    update_id: int
-    message: Optional[dict] = None
-    edited_message: Optional[dict] = None
-    channel_post: Optional[dict] = None
-    edited_channel_post: Optional[dict] = None
-    inline_query: Optional[dict] = None
-    chosen_inline_result: Optional[dict] = None
-    callback_query: Optional[dict] = None
-    shipping_query: Optional[dict] = None
-    pre_checkout_query: Optional[dict] = None
-    poll: Optional[dict] = None
-    poll_answer: Optional[dict] = None
+
 
 import os
 from typing import Optional
@@ -109,14 +95,7 @@ app = FastAPI()
 # Configure logging to output all request details
 logging.basicConfig(level=logging.INFO)
 
-# Pydantic model for handling incoming webhook data
-class TelegramWebhook(BaseModel):
-    '''
-    Telegram Webhook Model using Pydantic for request body validation
-    '''
-    update_id: int
-    message: Optional[dict] = None
-    edited_message: Optional[dict] = None
+# Pydantic model for handling incoming webhook dat
 
 # Buffer for messages and aggregation timer
 message_buffer = []
@@ -124,16 +103,22 @@ aggregation_timer = None
 target_group_id = None
 
 
+
 @app.post("/webhook")
 async def webhook(webhook_data: TelegramWebhook):
-    print(webhook_data.message)
+
+    #print(webhook_data)
+    print(webhook_data)
     if webhook_data.message:
-        if webhook_data.message['chat']['type'] == "group":
-            await process_message(webhook_data.message)
+        if 'new_chat_members' in webhook_data.message:
+            print("added to chat", webhook_data.message["new_chat_members"])
+            pass
+        elif webhook_data.message['chat']['type'] == "group":
+            await process_message(webhook_data.message) 
         else:
             session_manager = SessionManager(bot, webhook_data.message)
             await session_manager.handle_message()
-            print(webhook_data.message)
+
         
 
     return {"message": "ok"}
