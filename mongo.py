@@ -16,27 +16,46 @@ group_pair_collection = db['GroupPair']
 def create_group_pair(group1_data, group2_data):
     return group_pair_collection.insert_one({'group2_data': group1_data, 'group1_data': group2_data})
 
+def delete_group_pair(group_id):
+    # Find the pair where either group1_data.id or group2_data.id matches the provided group_id
+    result = group_pair_collection.find_one({
+        '$or': [
+            {'group1_data.id': group_id}, 
+            {'group2_data.id': group_id}
+        ]
+    })
+
+    if result:
+        # If a matching pair is found, delete it
+        deletion_result = group_pair_collection.delete_one({
+            '$or': [
+                {'group1_data.id': group_id}, 
+                {'group2_data.id': group_id}
+            ]
+        })
+        return deletion_result  # Return the result of the deletion operation
+    else:
+        # Return None if no pair was found to delete
+        return None
+
+
 # Read
 def get_group_pairs():
     return list(group_pair_collection.find())
 
 
 
-# Delete
-def delete_group_pair(group1_data, group2_data):
-    return group_pair_collection.delete_one({
-        'group1_data': group1_data,
-        'group2_data': group2_data
-    })
     
 def has_group_pair(group_id):
     possibility1 = group_pair_collection.find_one({'group1_data.id': group_id})
     possibility2 = group_pair_collection.find_one({'group2_data.id': group_id})
     
-    return possibility1 is not None or possibility2 is not None
-
-
-
+    if possibility1 is not None:
+        return possibility1
+    elif possibility2 is not None:
+        return possibility2
+    else:
+        return None
 
 message_pair_collection = db['MessagePair']
 
@@ -67,8 +86,8 @@ def get_forwarded_id(from_group_id, to_group_id, original_id):
 blacklist_collection = db['Blacklist']
 
 # Create
-def create_blacklist_entry(userid):
-    return blacklist_collection.insert_one({'userid': userid})
+def create_blacklist_entry(userid, first_name, last_name=None, username=None):
+    return blacklist_collection.insert_one({'userid': userid, 'first_name': first_name, 'last_name': last_name, "username": username})
 
 # Read
 def get_blacklist():
@@ -78,10 +97,12 @@ def get_blacklist():
 def delete_blacklist_entry(userid):
     return blacklist_collection.delete_one({'userid': userid})
 
+def is_blacklisted(userid):
+    return blacklist_collection.find_one({'userid': userid}) is not None
 
 session_collection = db['Session']
 def create_session(user_id, session_name, previous_data):
-    existing_session = session_collection.find_one({'user_id': user_id})
+    existing_session = session_collection.find_one({'user_id': user_id}) 
     if existing_session:
         return existing_session  # Do not create a new session if one exists
 

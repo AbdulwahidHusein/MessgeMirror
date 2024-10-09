@@ -3,13 +3,16 @@ from states import *
 from mongo import *
 from utils import *
 from telegram import Bot
+from model import TelegramWebhook
 
 class CommonMessageHandler:
-    def __init__(self, bot: Bot, update_message):
+    def __init__(self, bot: Bot, webhook_data : TelegramWebhook):
+        
+        self.web_hook_data = webhook_data
+        self.update_message = webhook_data.message
         self.bot = bot
-        self.update_message = update_message
-        self.from_id = update_message['from']['id']
-    
+  
+        self.from_id = self.update_message['from']['id']
         self.user_session = get_sessions_by_user_id(self.from_id)
     
     
@@ -73,10 +76,36 @@ class CommonMessageHandler:
             # Create the group pair
             create_group_pair(previous_data, second_group_data)
             await self.bot.send_message(chat_id=self.from_id, text= f"Pairs created {previous_data['title']} and {second_group_data['title']} successfully")
-            
-            # Clear the session after successful creation
-            delete_session(self.from_id)
+            update_session(self.from_id, None, None)
             return
         
-        elif session_name == WAITING_FOR_GROUP_DELETE_SELECTION:
-            print(message)
+        elif session_name == WAITING_FOR_BLACKLIST_USER:
+            if "forward_origin" in message and message['forward_origin'] is not None:
+                if "sender_user" in message["forward_origin"] and message['forward_origin'] is not None:
+                    sender_user = message["forward_origin"]["sender_user"]
+                    
+                    user_id = sender_user["id"]
+                    first_name = sender_user["first_name"]
+                    
+                    last_name = None
+                    if "last_name" in sender_user:
+                        last_name = sender_user["last_name"]
+                    username = None
+                    if "username" in sender_user:
+                        username = message["from"]["username"]
+                    
+                    if is_blacklisted(user_id):
+                        await self.bot.send_message(chat_id=self.from_id, text="User already blacklisted. forward message from other user")
+                        return
+                    success = create_blacklist_entry(user_id, first_name=first_name, last_name=last_name, username=username)
+                    if not success:
+                        await self.bot.send_message(chat_id=self.from_id, text="Something went wrong, please try again")
+                        return
+                    await self.bot.send_message(chat_id=self.from_id, text="User blacklisted successfully")
+                    update_session(user_id, None, None)
+                else:
+                    await self.bot.send_message(text="This profile is Private I can't access Their Profile Please try sending Their username")
+                    
+            elif "text" in message and message['text'] is not None:
+                await self.bot.send_message(chat_id=self.from_id, text="Please Froward Message from the user to be blacklisted")
+

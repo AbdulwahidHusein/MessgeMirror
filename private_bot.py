@@ -9,6 +9,7 @@ from message_handler import CommonMessageHandler
 # Load environment variables
 load_dotenv()
 
+from model import TelegramWebhook
 
 # Import your MongoDB operations here
 from mongo import (
@@ -38,14 +39,17 @@ class UserSession:
 
 
 class SessionManager:
-    def __init__(self, bot: Bot, update_message):
+    def __init__(self, bot: Bot, webhook_data: TelegramWebhook):
+        update_message = webhook_data.message
         self.bot = bot
         self.update_message = update_message
         self.from_id = update_message['from']['id']
     
         self.user_session = get_sessions_by_user_id(self.from_id)
         
-        self.message_handler = CommonMessageHandler(bot, update_message)
+        self.webhook_data = webhook_data
+        
+        self.message_handler = CommonMessageHandler(bot, webhook_data)
         
         
     async def handle_message(self):
@@ -70,7 +74,7 @@ class SessionManager:
             await self.handle_get_pairs()
         
         elif text == 'Get Blacklist':
-            pass
+            await self.handle_get_blacklist()
         
         else:
             await self.message_handler.handle_messages()
@@ -94,6 +98,7 @@ class SessionManager:
             )
         )
         
+        
     async def handle_add_pair(self):
         await self.bot.send_message(chat_id=self.from_id, text="Please send me username of the First Group")
         update_session(self.from_id, WAITING_FOR_FIRST_GROUP, None)
@@ -116,7 +121,6 @@ class SessionManager:
         # Send the message with the inline keyboard
         await self.bot.send_message(chat_id=self.from_id, reply_markup=reply_markup, text="Select a pair to remove:")
         
-        update_session(self.from_id, WAITING_FOR_GROUP_DELETE_SELECTION, None)
         
     async def handle_add_to_blacklist(self):
         await self.bot.send_message(chat_id=self.from_id, text="Forward be a message from The user to be blacklisted")
@@ -128,7 +132,6 @@ class SessionManager:
             await self.bot.send_message(chat_id=self.from_id, text="No pairs found.")
             return
         keyboards = [] 
-        print(pairs)
         for pair in pairs:
             
             group1_title = pair.get("group1_data", {}).get('title', 'Unknown Group 1')
@@ -145,7 +148,7 @@ class SessionManager:
         # Create the InlineKeyboardMarkup
         reply_markup = InlineKeyboardMarkup(keyboards)
         
-        await self.bot.send_message(chat_id=self.from_id, text="List of Pairs:", reply_markup=reply_markup)
+        await self.bot.send_message(chat_id=self.from_id, text="List of Group Pairs:", reply_markup=reply_markup)
         
 
         
@@ -155,8 +158,16 @@ class SessionManager:
         keyboards =  []
         
         for blacklist in blacklists:
-            keyboards.append([InlineKeyboardButton(blacklist["userid"])])
-        
+            button_text = ""
+            if "first_name" in blacklist and blacklist["first_name"] is not None:
+                button_text += blacklist["first_name"]
+            
+            if "last_name" in blacklist and blacklist["last_name"] is not None:
+                botton_text += " " + blacklist["last_name"]
+            if len(button_text.strip()) == 0:
+                button_text = str ( blacklist['userid'])
+            keyboards.append([InlineKeyboardButton(text=(button_text), callback_data=f"remove_from_blacklist:{blacklist['userid']}")])
+            
         if not keyboards:
             await self.bot.send_message(chat_id=self.from_id, text="No blacklist found.")
             return
@@ -167,8 +178,31 @@ class SessionManager:
         
         update_session(self.from_id, WAITING_FOR_REMOVE_BLACKLIST_USER, None)
         
-            
-                
+    async def handle_get_blacklist(self): 
+        blacklisted_users = get_blacklist()
+        
+        if len(blacklisted_users) == 0:
+            await self.bot.send_message(chat_id=self.from_id, text="No Black listed Users Use the bottons to Blacklist users")
+            return    
+        keyboards = []
+        
+        for user in blacklisted_users:
+            button_text = ""
+            if "first_name" in user and user["first_name"] is not None:
+                button_text += user["first_name"]
+
+            if "last_name" in user and user["last_name"] is not None:
+                button_text += " " + user["last_name"]
+
+            if "username" in user and user["username"] is not None:
+                button_text += " +@" + user["username"]
+
+            if len(button_text.strip()) == 0: 
+                button_text = user.get("userid", "Unknown User") 
+            keyboards.append([InlineKeyboardButton(text=button_text, callback_data=f"action-on-user:{user['userid']}")])
+        reply_markup = InlineKeyboardMarkup(keyboards)
+        
+        await self.bot.send_message(chat_id=self.from_id, text="List of Blacklisted  Users:", reply_markup=reply_markup)
 if __name__ == "__main__":
     # Call the function directly
     get_group_info_by_username("Astuclassic45")
