@@ -10,6 +10,8 @@ from utils import *
 from states import *
 from states_handler import CommonMessageHandler
 from model import TelegramWebhook
+from db.admindb import load_admin_list
+
 from db.database import (
      get_group_pairs, get_blacklist, get_sessions_by_user_id, update_session, delete_session, get_member_ship_groups
 )
@@ -44,6 +46,7 @@ class SessionManager:
             'Help': self.handle_help,
             "Seettings": self.handle_settings,
             'Exit': self.handle_exit,
+            "Admins": self.handle_get_admins
         }
         
         handler = handlers.get(text)
@@ -61,7 +64,8 @@ class SessionManager:
                 ["Add Pair", "Remove Pair"],
                 ["Add to Blacklist", "Remove From Blacklist"],
                 ["Get Pairs", "Get Blacklist"],
-                ["Help", "Exit"]
+                ["Help", "Exit"],
+                ["Admins"]
                 
             ]
         )
@@ -140,7 +144,13 @@ class SessionManager:
     """
         
         await self.bot.send_message(chat_id=self.from_id, text=help_message, parse_mode='Markdown')
-
+        
+    async def handle_get_admins(self):
+        admin_list = load_admin_list()
+        buttons = [InlineKeyboardButton(text=f"@{username}", callback_data=f"admin_actions:{username}") for username in admin_list]
+        await self._send_message_with_inline_keyboard(chat_id=self.from_id, text="Admins:", buttons=buttons)
+        # await self.bot.send_message(chat_id=self.from_id, text=f"Admin list: {', '.join(admin_list)}")
+        
     async def handle_exit(self):
         """Ends the current session and sends a session exit message."""
         await self.bot.send_message(chat_id=self.from_id, text="Your session has been successfully closed.")
