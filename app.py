@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 from typing import Dict
 
-from fastapi import FastAPI, Form, Request
+from fastapi import FastAPI, Form
 from fastapi.responses import HTMLResponse
 
 import logging

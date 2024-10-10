@@ -42,6 +42,7 @@ class SessionManager:
             'Get Pairs': self.handle_get_pairs,
             'Get Blacklist': self.handle_get_blacklist,
             'Help': self.handle_help,
+            "Seettings": self.handle_settings,
             'Exit': self.handle_exit,
         }
         
@@ -60,7 +61,7 @@ class SessionManager:
                 ["Add Pair", "Remove Pair"],
                 ["Add to Blacklist", "Remove From Blacklist"],
                 ["Get Pairs", "Get Blacklist"],
-                ["Help", "Exit"],
+                ["Help", "Exit"]
                 
             ]
         )
@@ -161,6 +162,11 @@ class SessionManager:
         """Helper method to send a message with inline keyboard buttons."""
         reply_markup = InlineKeyboardMarkup(buttons)
         await self.bot.send_message(chat_id=chat_id, text=text, reply_markup=reply_markup)
+        
+        
+    async def handle_settings(self):
+        """Handles the settings command."""
+        await self.bot.send_message(chat_id=self.from_id, text="Settings not implemented yet.")
 
     def _create_blacklist_button(self, user: dict) -> list:
         """Helper method to create a button for each blacklisted user."""
@@ -183,3 +189,6 @@ class SessionManager:
         group2_title = pair.get("group2_data", {}).get('title', 'Unknown Group 2')
         button_text = f"{group1_title} <> {group2_title}"
         return [InlineKeyboardButton(text=button_text, callback_data='some_callback_data')]
+    
+    
+    
