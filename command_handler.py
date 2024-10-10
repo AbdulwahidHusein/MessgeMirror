@@ -172,6 +172,8 @@ class SessionManager:
         if len(button_text.strip()) == 0:
             if user.get("username") is not None:
                 button_text += f"@{user.get('username', '')}"
+        if button_text.strip() == "":
+            button_text = str(user['userid'])
         button_text = f"{button_text} (Click to remove from blacklist)".strip() or str(user['userid'])
         return [InlineKeyboardButton(text=button_text, callback_data=f"remove_from_blacklist:{user['userid']}")]
 
