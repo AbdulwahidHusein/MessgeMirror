@@ -26,15 +26,12 @@ def get_group_info_by_username(username: str):
     if not username:
         return None
 
-    # Define the URL for the Telegram API
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/getChat?chat_id={username}"
 
-    # Make a synchronous HTTP GET request
     response = requests.get(url)
 
-    # Check if the request was successful
     if response.status_code == 200:
-        group_data = response.json()  # Convert response to JSON
+        group_data = response.json()  
         print(group_data)
         return group_data
     else:

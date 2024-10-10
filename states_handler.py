@@ -1,5 +1,5 @@
 from states import WAITING_FOR_FIRST_GROUP, WAITING_FOR_SECOND_GROUP, WAITING_FOR_BLACKLIST_USER
-from mongo import get_sessions_by_user_id, update_session, has_group_pair, create_group_pair, is_blacklisted, create_blacklist_entry
+from database import get_sessions_by_user_id, update_session, has_group_pair, create_group_pair, is_blacklisted, create_blacklist_entry
 from utils import get_group_info_by_username
 from telegram import Bot
 from model import TelegramWebhook
@@ -25,7 +25,7 @@ class CommonMessageHandler:
         elif session_name == WAITING_FOR_BLACKLIST_USER:
             await self.handle_blacklist_user()
         else:
-            await self.bot.send_message(chat_id=self.from_id, text="Invalid Request Youse Buttons to ineract.")
+            await self.bot.send_message(chat_id=self.from_id, text="Invalid request. Please use the provided buttons to interact with the bot.")
 
     async def handle_first_group(self):
         """Handle the logic when waiting for the first group's username."""
@@ -47,7 +47,7 @@ class CommonMessageHandler:
             "username": group_info['result']["username"]
         }
         update_session(self.from_id, WAITING_FOR_SECOND_GROUP, first_group_data)
-        await self.bot.send_message(chat_id=self.from_id, text="Please send me the username of the Second Group")
+        await self.bot.send_message(chat_id=self.from_id, text="First group saved successfully! Now, please send me the username of the second group you'd like to pair.")
 
     async def handle_second_group(self, previous_data: Optional[dict]):
         """Handle the logic when waiting for the second group's username."""
@@ -73,12 +73,12 @@ class CommonMessageHandler:
         }
 
         if second_group_data["id"] == previous_data["id"]:
-            await self.bot.send_message(chat_id=self.from_id, text="You cannot pair a group with itself. Please send a different group.")
+            await self.bot.send_message(chat_id=self.from_id, text="The second group cannot be the same as the first group. Please send the username of a different group.")
             return
 
         # Create group pair
         create_group_pair(previous_data, second_group_data)
-        await self.bot.send_message(chat_id=self.from_id, text=f"Pair created: {previous_data['title']} and {second_group_data['title']} successfully.")
+        await self.bot.send_message(chat_id=self.from_id, text=f"Group pairing successful! The groups '{previous_data['title']}' and '{second_group_data['title']}' have been paired.")
         update_session(self.from_id, None, None)
 
     async def handle_blacklist_user(self):
@@ -87,7 +87,7 @@ class CommonMessageHandler:
         if "forward_origin" in message and message['forward_origin']:
             await self._process_forwarded_user()
         elif "text" in message and message['text']:
-            await self.bot.send_message(chat_id=self.from_id, text="Please forward a message from the user to be blacklisted.")
+            await self.bot.send_message(chat_id=self.from_id, text="To blacklist a user, please forward a message from them.")
 
     async def _process_forwarded_user(self):
         """Process the forwarded user details for blacklisting."""
@@ -95,7 +95,7 @@ class CommonMessageHandler:
         sender_user = forward_origin.get("sender_user")
 
         if not sender_user:
-            await self.bot.send_message(chat_id=self.from_id, text="This profile is private. I can't access their profile. Please try sending their username.")
+            await self.bot.send_message(chat_id=self.from_id, text="The forwarded user has a private profile, and their information cannot be accessed. Please send their username directly.")
             return
 
         user_id = sender_user["id"]
@@ -104,7 +104,7 @@ class CommonMessageHandler:
         username = self.update_message["from"].get("username")
 
         if is_blacklisted(user_id):
-            await self.bot.send_message(chat_id=self.from_id, text="User already blacklisted. Please forward a message from another user.")
+            await self.bot.send_message(chat_id=self.from_id, text="This user is already in the blacklist. Please forward a message from a different user.")
             return
 
         success = create_blacklist_entry(user_id, first_name=first_name, last_name=last_name, username=username)
@@ -112,20 +112,20 @@ class CommonMessageHandler:
             await self._send_generic_error_message()
             return
 
-        await self.bot.send_message(chat_id=self.from_id, text="User blacklisted successfully.")
+        await self.bot.send_message(chat_id=self.from_id, text="User has been successfully blacklisted.")
         update_session(self.from_id, None, None)
 
     async def _send_invalid_username_message(self):
         """Send a message to the user indicating the username is invalid."""
-        await self.bot.send_message(chat_id=self.from_id, text="Invalid username. Please try again.")
+        await self.bot.send_message(chat_id=self.from_id, text="The username you provided is invalid. Please ensure the username is correct and try again.")
         update_session(self.from_id, None, None)
 
     async def _send_group_pair_exists_message(self):
         """Send a message to the user indicating the group pair already exists."""
-        await self.bot.send_message(chat_id=self.from_id, text="Group pair already exists. Please try again.")
+        await self.bot.send_message(chat_id=self.from_id, text="This group is already part of an existing pair. Please provide a different group username.")
         update_session(self.from_id, None, None)
 
     async def _send_generic_error_message(self):
         """Send a generic error message to the user."""
-        await self.bot.send_message(chat_id=self.from_id, text="Something went wrong, please try again.")
+        await self.bot.send_message(chat_id=self.from_id, text="An error occurred during the process. Please try again later.")
         update_session(self.from_id, None, None)
