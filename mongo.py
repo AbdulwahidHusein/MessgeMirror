@@ -47,26 +47,37 @@ def get_group_pairs():
 
     
 def has_group_pair(group_id):
-    possibility1 = group_pair_collection.find_one({'group1_data.id': group_id})
-    possibility2 = group_pair_collection.find_one({'group2_data.id': group_id})
+    query = {
+        '$or': [
+            {'group1_data.id': group_id},
+            {'group2_data.id': group_id}
+        ]
+    }
     
-    if possibility1 is not None:
-        return possibility1
-    elif possibility2 is not None:
-        return possibility2
+    result = group_pair_collection.find_one(query)
+    
+    if result is not None:
+        if result['group1_data']['id'] == group_id:
+            return result['group2_data']['id']
+        else:
+            return result['group1_data']['id']
     else:
-        return None
+        return None 
+
 
 message_pair_collection = db['MessagePair']
 
 # Create
 def create_message_pair(from_group_id, to_group_id, original_id, forwarded_id):
-    return message_pair_collection.insert_one({
+    
+    
+    result =  message_pair_collection.insert_one({
         'from_group_id': from_group_id,
         'to_group_id': to_group_id,
         'original_id': original_id,
         'forwarded_id': forwarded_id
     })
+    return result
 
 
 # Delete
@@ -74,14 +85,23 @@ def delete_message_pair(pair_id):
     return message_pair_collection.delete_one({'_id': pair_id})
 
 
-def get_forwarded_id(from_group_id, to_group_id, original_id):
-    message_pair = message_pair_collection.find_one({
+def get_forwarded_id(from_group_id, to_group_id, original_id = None, forwarded_id = None):
+    # print(from_group_id, to_group_id, original_id)
+    filters = {
         'from_group_id': from_group_id,
-        'to_group_id': to_group_id,
-        'original_id': original_id
-    })
-    return message_pair['forwarded_id'] if message_pair else None
+        'to_group_id': to_group_id
+    }
+    
+    if original_id is not None:
+        filters['original_id'] = original_id
+    if forwarded_id is not None:
+        filters['forwarded_id'] = forwarded_id
 
+    message_pair = message_pair_collection.find_one(filters)
+    if forwarded_id is None:
+        return message_pair['forwarded_id'] if message_pair else None
+    else:
+        return message_pair["original_id"] if message_pair else None
 
 blacklist_collection = db['Blacklist']
 
@@ -136,9 +156,40 @@ def get_sessions_by_user_id(user_id):
     session = session_collection.find_one({'user_id': user_id})
     if session is None:
         # Create a new session if it does not exist
-        return create_session(user_id, "default_session_name", "default_previous_data")
+        return create_session(user_id, None, None)
     return session
 
 # Delete
 def delete_session(user_id):
     return session_collection.delete_one({'user_id': user_id})
+
+
+member_ship_collection = db['MemberShip']
+
+
+
+def create_member_ship(group_info: dict):
+    group_id = group_info['id'] 
+
+    result = member_ship_collection.update_one(
+        {'id': group_id},
+        {'$set': {'group_data': group_info}}, 
+        upsert=True
+    )
+    
+    return result.upserted_id  
+
+
+def delete_member_ship(group_id: str):
+    result = member_ship_collection.delete_one({'id': group_id}) 
+
+    if result.deleted_count == 0:
+        print(f"No document found with group_id: {group_id}")
+        return None  
+    return result.deleted_count
+
+def get_member_ship_groups():
+    return list(member_ship_collection.find())
+
+def get_member_shipgroup_by_id(group_id: str):
+    return member_ship_collection.find_one({'id': group_id})
