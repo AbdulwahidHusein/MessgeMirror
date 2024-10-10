@@ -148,7 +148,7 @@ class SessionManager:
     async def handle_get_admins(self):
         admin_list = load_admin_list()
         buttons = [InlineKeyboardButton(text=f"@{username}", callback_data=f"admin_actions:{username}") for username in admin_list]
-        await self._send_message_with_inline_keyboard(chat_id=self.from_id, text="Admins:", buttons=buttons)
+        await self.bot.send_message(chat_id=self.from_id, text="Admins:", reply_markup=InlineKeyboardMarkup(buttons))
         # await self.bot.send_message(chat_id=self.from_id, text=f"Admin list: {', '.join(admin_list)}")
         
     async def handle_exit(self):
