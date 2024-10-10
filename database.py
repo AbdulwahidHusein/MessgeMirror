@@ -206,7 +206,7 @@ def create_member_ship(group_info: dict):
     return result.upserted_id
 
 
-def delete_member_ship(group_id: str):
+def delete_member_ship(group_id: int):
     """Delete a membership group by its group_id."""
     result = member_ship_collection.delete_one({'id': group_id})
     if result.deleted_count > 0:
@@ -224,7 +224,7 @@ def get_member_ship_groups():
     return list(membership_cache.cache.values())
 
 
-def get_member_shipgroup_by_id(group_id: str):
+def get_member_shipgroup_by_id(group_id: int):
     """Retrieve a membership group by its group_id."""
     group = membership_cache.get(group_id)
     if group is None:

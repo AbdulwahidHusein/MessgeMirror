@@ -33,4 +33,4 @@ jobs:
             -e BOT_TOKEN=${{ secrets.BOT_TOKEN }} \
             -e MONGO_URL=${{ secrets.MONGO_URL }} \
             -e OWNER_TELEGRAM_ID=${{ secrets.OWNER_TELEGRAM_ID }} \
-            abdusdocker/mirror-bot:latest
+            abdusdocker/mir ror-bot:latest

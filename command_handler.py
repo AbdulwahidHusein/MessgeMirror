@@ -70,7 +70,7 @@ class SessionManager:
         membership_groups = get_member_ship_groups()
         
         await self.bot.send_message(chat_id=self.from_id, text="Please provide the username of the first group, or add me to the group and send any message in the group. You can also select from the list of groups I'm already a member of below:")
-
+        # print(membership_groups)
         buttons = [[InlineKeyboardButton(text=f"{group['group_data']['title']}", callback_data=f"add_pair_inline:{group['group_data']['id']}")] for group in membership_groups]
 
         await self._send_message_with_inline_keyboard(chat_id=self.from_id, text="Select a group to add:", buttons=buttons)

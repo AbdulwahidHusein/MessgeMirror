@@ -89,6 +89,8 @@ class CommonMessageHandler:
             await self._process_forwarded_user()
         elif "text" in message and message['text']:
             await self.process_blacklist_by_username()
+        
+        update_session(self.from_id, None, None)
 
     async def _process_forwarded_user(self):
         """Process the forwarded user details for blacklisting."""

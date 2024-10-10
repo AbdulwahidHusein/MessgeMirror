@@ -47,8 +47,10 @@ async def handle_confirm_remove_pair(bot: Bot, user_id: int, callback_data: str)
         success = delete_group_pair(pair_id)
         if success:
             await bot.send_message(chat_id=user_id, text=f"Group pair with ID {pair_id} has been successfully removed.")
+            update_session(user_id, None, None)
         else:
             await bot.send_message(chat_id=user_id, text=f"Failed to remove the group pair with ID {pair_id}. It may not exist.")
+            update_session(user_id, None, None)
     except (ValueError, IndexError):
         await bot.send_message(chat_id=user_id, text="Invalid group pair ID. Please try again.")
 
@@ -62,6 +64,8 @@ async def handle_remove_from_blacklist(bot: Bot, user_id: int, callback_data: st
             await bot.send_message(chat_id=user_id, text="User has been successfully removed from the blacklist.")
         else:
             await bot.send_message(chat_id=user_id, text="Failed to remove user from the blacklist. The user may not be blacklisted.")
+        update_session(user_id, None, None)
+        
     except (ValueError, IndexError):
         success = delete_blacklist_entry(callback_data.split(":")[1])
         if success:
