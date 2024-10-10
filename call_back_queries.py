@@ -63,7 +63,13 @@ async def handle_remove_from_blacklist(bot: Bot, user_id: int, callback_data: st
         else:
             await bot.send_message(chat_id=user_id, text="Failed to remove user from the blacklist. The user may not be blacklisted.")
     except (ValueError, IndexError):
-        await bot.send_message(chat_id=user_id, text="Invalid user ID. Please try again.")
+        success = delete_blacklist_entry(callback_data.split(":")[1])
+        if success:
+            await bot.send_message(chat_id=user_id, text="User has been successfully removed from the blacklist.")
+            return
+        else:
+            await bot.send_message(chat_id=user_id, text="Failed to remove user from the blacklist. The user may not be blacklisted.")
+            return
 
 
 async def handle_add_pair_inline(bot: Bot, user_id: int, callback_data: str):
