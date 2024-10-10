@@ -146,11 +146,19 @@ class SessionManager:
         await self.bot.send_message(chat_id=self.from_id, text=help_message, parse_mode='Markdown')
         
     async def handle_get_admins(self):
-        admin_list = load_admin_list()
-        buttons = [InlineKeyboardButton(text=f"@{username}", callback_data=f"admin_actions:{username}") for username in admin_list]
+        try:
+            admin_list = load_admin_list()
+        except Exception as e:
+            await self.bot.send_message(chat_id=self.from_id, text=f"Error loading admin list: {e}")
+            return
+
+        if not admin_list:
+            await self.bot.send_message(chat_id=self.from_id, text="No admins found.")
+            return
+
+        buttons = [[InlineKeyboardButton(text=f"@{username}", callback_data=f"admin_actions:{username}")] for username in admin_list]
         await self.bot.send_message(chat_id=self.from_id, text="Admins:", reply_markup=InlineKeyboardMarkup(buttons))
-        # await self.bot.send_message(chat_id=self.from_id, text=f"Admin list: {', '.join(admin_list)}")
-        
+
     async def handle_exit(self):
         """Ends the current session and sends a session exit message."""
         await self.bot.send_message(chat_id=self.from_id, text="Your session has been successfully closed.")
