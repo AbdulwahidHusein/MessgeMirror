@@ -2,11 +2,11 @@ import os
 from dotenv import load_dotenv
 from pymongo import MongoClient
 from datetime import datetime
+from model import LRUCache
 
-# Load environment variables
+# Load environment 
 load_dotenv()
 
-# MongoDB Connection
 MONGO_URL = os.getenv('MONGO_URL')
 client = MongoClient(MONGO_URL)
 db = client['messagemerror']
@@ -18,6 +18,13 @@ blacklist_collection = db['Blacklist']
 session_collection = db['Session']
 member_ship_collection = db['MemberShip']
 
+
+
+# Initialize LRU Caches
+session_cache = LRUCache(capacity=100)
+blacklist_cache = LRUCache(capacity=100)
+membership_cache = LRUCache(capacity=100)
+
 # =======================================
 # Group Pair Management
 # =======================================
@@ -27,10 +34,6 @@ def create_group_pair(group1_data, group2_data):
 
 
 def delete_group_pair(group_id):
-    """
-    Delete a group pair based on group_id.
-    It deletes the pair if either group1_data.id or group2_data.id matches the provided group_id.
-    """
     query = {'$or': [{'group1_data.id': group_id}, {'group2_data.id': group_id}]}
     result = group_pair_collection.find_one(query)
 
@@ -46,7 +49,6 @@ def get_group_pairs():
 
 
 def has_group_pair(group_id):
-    """Check if a group is part of an existing group pair."""
     query = {'$or': [{'group1_data.id': group_id}, {'group2_data.id': group_id}]}
     result = group_pair_collection.find_one(query)
 
@@ -76,10 +78,6 @@ def delete_message_pair(pair_id):
 
 
 def get_forwarded_id(from_group_id, to_group_id, original_id=None, forwarded_id=None):
-    """
-    Retrieve the forwarded message ID based on the original message ID or vice versa.
-    If forwarded_id is None, return the forwarded_id; otherwise, return the original_id.
-    """
     filters = {'from_group_id': from_group_id, 'to_group_id': to_group_id}
     if original_id is not None:
         filters['original_id'] = original_id
@@ -97,23 +95,41 @@ def get_forwarded_id(from_group_id, to_group_id, original_id=None, forwarded_id=
 # =======================================
 def create_blacklist_entry(userid, first_name, last_name=None, username=None):
     """Add a user to the blacklist."""
-    return blacklist_collection.insert_one({
-        'userid': userid, 'first_name': first_name, 'last_name': last_name, 'username': username
-    })
+    blacklist_entry = {
+        'userid': userid,
+        'first_name': first_name,
+        'last_name': last_name,
+        'username': username
+    }
+    
+    blacklist_collection.insert_one(blacklist_entry)
+    blacklist_cache.put(userid, blacklist_entry)  # Cache the entry
+    return blacklist_entry
 
 
 def get_blacklist():
     """Retrieve the list of blacklisted users."""
-    return list(blacklist_collection.find())
+    if len(blacklist_cache.cache) == 0:
+        # Load from database if not in cache
+        blacklisted_users = list(blacklist_collection.find())
+        for user in blacklisted_users:
+            blacklist_cache.put(user['userid'], user)
+    return list(blacklist_cache.cache.values())
 
 
 def delete_blacklist_entry(userid):
     """Remove a user from the blacklist."""
-    return blacklist_collection.delete_one({'userid': userid})
+    deletion_result = blacklist_collection.delete_one({'userid': userid})
+    if deletion_result.deleted_count > 0:
+        # Remove from cache if found
+        blacklist_cache.cache.pop(userid, None)
+    return deletion_result
 
 
 def is_blacklisted(userid):
     """Check if a user is blacklisted."""
+    if blacklist_cache.get(userid) is not None:
+        return True
     return blacklist_collection.find_one({'userid': userid}) is not None
 
 
@@ -121,22 +137,21 @@ def is_blacklisted(userid):
 # Session Management
 # =======================================
 def create_session(user_id, session_name, previous_data):
-    """
-    Create a new session for a user if one doesn't exist.
-    If the session exists, return the existing session.
-    """
-    existing_session = session_collection.find_one({'user_id': user_id})
+    """Create a new session for a user if one doesn't exist."""
+    existing_session = session_cache.get(user_id)
     if existing_session:
         return existing_session
 
-    session_collection.insert_one({
+    new_session = {
         'user_id': user_id,
         'created_at': datetime.now(),
         'session_name': session_name,
         'previous_data': previous_data
-    })
+    }
 
-    return session_collection.find_one({'user_id': user_id})
+    session_collection.insert_one(new_session)
+    session_cache.put(user_id, new_session)  # Cache the new session
+    return new_session
 
 
 def update_session(user_id=None, session_name=None, previous_data=None):
@@ -151,21 +166,28 @@ def update_session(user_id=None, session_name=None, previous_data=None):
 
     if result.matched_count == 0:
         return create_session(user_id, session_name, previous_data)
-
-    return session_collection.find_one({'user_id': user_id})
+    
+    # Update cache
+    session_cache.put(user_id, {**session_cache.get(user_id), **update_fields})
+    
+    return session_cache.get(user_id)
 
 
 def get_sessions_by_user_id(user_id):
     """Retrieve a user's session, or create a new one if none exists."""
-    session = session_collection.find_one({'user_id': user_id})
+    session = session_cache.get(user_id)
     if session is None:
-        return create_session(user_id, None, None)
+        session = create_session(user_id, None, None)
     return session
 
 
 def delete_session(user_id):
     """Delete a user's session by user_id."""
-    return session_collection.delete_one({'user_id': user_id})
+    deletion_result = session_collection.delete_one({'user_id': user_id})
+    if deletion_result.deleted_count > 0:
+        # Remove from cache
+        session_cache.cache.pop(user_id, None)
+    return deletion_result
 
 
 # =======================================
@@ -179,23 +201,34 @@ def create_member_ship(group_info: dict):
         {'$set': {'group_data': group_info}},
         upsert=True
     )
+    
+    membership_cache.put(group_id, group_info)
     return result.upserted_id
 
 
 def delete_member_ship(group_id: str):
     """Delete a membership group by its group_id."""
     result = member_ship_collection.delete_one({'id': group_id})
-    if result.deleted_count == 0:
-        print(f"No document found with group_id: {group_id}")
-        return None
+    if result.deleted_count > 0:
+        # Remove from cache if found
+        membership_cache.cache.pop(group_id, None)
     return result.deleted_count
 
 
 def get_member_ship_groups():
     """Retrieve all membership groups."""
-    return list(member_ship_collection.find())
+    if len(membership_cache.cache) == 0:
+        membership_groups = list(member_ship_collection.find())
+        for group in membership_groups:
+            membership_cache.put(group['id'], group)
+    return list(membership_cache.cache.values())
 
 
 def get_member_shipgroup_by_id(group_id: str):
     """Retrieve a membership group by its group_id."""
-    return member_ship_collection.find_one({'id': group_id})
+    group = membership_cache.get(group_id)
+    if group is None:
+        group = member_ship_collection.find_one({'id': group_id})
+        if group:
+            membership_cache.put(group_id, group)  # Cache the found group
+    return group
