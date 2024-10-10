@@ -14,6 +14,7 @@ from forwarder import Forwarder
 load_dotenv()
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 MONGO_URL = os.getenv('MONGO_URL')
+OWNER_TELEGRAM_ID = os.getenv('OWNER_TELEGRAM_ID')
 
 bot = Bot(BOT_TOKEN)
 
