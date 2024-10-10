@@ -71,6 +71,8 @@ async def webhook(webhook_data: TelegramWebhook) -> Dict[str, str]:
     except Exception as e:
         await handle_error(e, "Webhook processing")
     
+    return {"message": "ok"}
+    
 
 
 @app.get("/add-admin", response_class=HTMLResponse)
