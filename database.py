@@ -93,7 +93,7 @@ def get_forwarded_id(from_group_id, to_group_id, original_id=None, forwarded_id=
 # =======================================
 # Blacklist Management
 # =======================================
-def create_blacklist_entry(userid, first_name, last_name=None, username=None):
+def create_blacklist_entry(userid, first_name=None, last_name=None, username=None):
     """Add a user to the blacklist."""
     blacklist_entry = {
         'userid': userid,

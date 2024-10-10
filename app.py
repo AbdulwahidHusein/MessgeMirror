@@ -1,8 +1,10 @@
 import os
 from dotenv import load_dotenv
-from typing import Optional, Dict
+from typing import Dict
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Form, Request
+from fastapi.responses import HTMLResponse
+
 import logging
 from telegram import Bot
 from telegram.error import TelegramError
@@ -10,6 +12,8 @@ from command_handler import SessionManager
 import call_back_queries
 from model import TelegramWebhook
 from forwarder import Forwarder
+
+from admin import add_username, is_admin
 
 load_dotenv()
 BOT_TOKEN = os.getenv('BOT_TOKEN')
@@ -34,7 +38,6 @@ def is_private_message(webhook_data: TelegramWebhook) -> bool:
 
 async def handle_error(e: Exception, context: str) -> None:
     logger.error(f"Error in {context}: {e}")
-    raise HTTPException(status_code=500, detail="An internal error occurred")
 
 # Webhook endpoint for handling incoming Telegram messages
 @app.post("/webhook")
@@ -47,8 +50,13 @@ async def webhook(webhook_data: TelegramWebhook) -> Dict[str, str]:
         
         # Handle private messages
         elif is_private_message(webhook_data):
-            session_manager = SessionManager(bot, webhook_data)
-            await session_manager.handle_message()
+            user = webhook_data.message['from']
+            
+            if 'username' in user:
+                username = user['username']
+                if is_admin(username):
+                    session_manager = SessionManager(bot, webhook_data)
+                    await session_manager.handle_message()
         
         # Handle callback queries
         elif webhook_data.callback_query:
@@ -62,9 +70,21 @@ async def webhook(webhook_data: TelegramWebhook) -> Dict[str, str]:
     
     except Exception as e:
         await handle_error(e, "Webhook processing")
+    
+    return {"message": "ok"}
 
-# Health check endpoint
-@app.get("/")
-def index() -> Dict[str, str]:
-    return {"message": "Hello World"}
 
+@app.get("/add-admin", response_class=HTMLResponse)
+async def add_admin_form():
+    with open("add_admin_form.html", "r") as file:
+        html_content = file.read()
+    return HTMLResponse(content=html_content)
+
+# Step 2: Handle the form submission
+@app.post("/add-admin")
+async def handle_admin_form(bot_token: str = Form(...), username: str = Form(...)) -> Dict[str, str]:
+    if bot_token == BOT_TOKEN:
+        add_username(username)
+        return {"message": f"Admin {username} added successfully!"}
+    
+    return {"message": "Invalid bot token."}
