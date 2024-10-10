@@ -1,6 +1,6 @@
 from telegram import Bot, InlineKeyboardButton, InlineKeyboardMarkup
 from model import TelegramWebhook
-from database import delete_group_pair, delete_blacklist_entry, get_sessions_by_user_id, get_member_shipgroup_by_id, update_session, has_group_pair, create_group_pair
+from database import delete_group_pair, delete_blacklist_entry, get_sessions_by_user_id, get_member_shipgroup_by_id, update_session, has_group_pair, create_group_pair, delete_session
 from states import WAITING_FOR_SECOND_GROUP
 
 async def handle_callback_query(bot: Bot, webhook_data: TelegramWebhook):
@@ -113,7 +113,7 @@ async def handle_add_pair_inline(bot: Bot, user_id: int, callback_data: str):
         # Create group pair
         create_group_pair(previous_data, group_info['group_data'])
         await bot.send_message(chat_id=user_id, text=f"Group pair created: {previous_data['title']} <> {group_info['group_data']['title']} successfully.")
-        update_session(user_id, None, None)
+        delete_session(user_id)
 
     else:
         await bot.send_message(chat_id=user_id, text="Something went wrong! Please try again.")
