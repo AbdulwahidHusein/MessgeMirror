@@ -1,6 +1,6 @@
 from telegram import Bot, InlineKeyboardButton, InlineKeyboardMarkup
 from model import TelegramWebhook
-from database import delete_group_pair, delete_blacklist_entry, get_sessions_by_user_id, get_member_shipgroup_by_id, update_session, has_group_pair, create_group_pair, delete_session
+from db.database import delete_group_pair, delete_blacklist_entry, get_sessions_by_user_id, get_member_shipgroup_by_id, update_session, has_group_pair, create_group_pair, delete_session
 from states import WAITING_FOR_SECOND_GROUP
 
 async def handle_callback_query(bot: Bot, webhook_data: TelegramWebhook):

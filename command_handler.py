@@ -10,7 +10,7 @@ from utils import *
 from states import *
 from states_handler import CommonMessageHandler
 from model import TelegramWebhook
-from database import (
+from db.database import (
      get_group_pairs, get_blacklist, get_sessions_by_user_id, update_session, delete_session, get_member_ship_groups
 )
 

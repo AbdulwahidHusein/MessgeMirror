@@ -1,5 +1,5 @@
 from model import TelegramWebhook
-from database import has_group_pair, create_message_pair, get_forwarded_id, create_member_ship, is_blacklisted
+from db.database import has_group_pair, create_message_pair, get_forwarded_id, create_member_ship, is_blacklisted
 from telegram import Bot
 from telegram.error import TelegramError
 

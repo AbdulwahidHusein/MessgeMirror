@@ -13,7 +13,7 @@ import call_back_queries
 from model import TelegramWebhook
 from forwarder import Forwarder
 
-from admin import add_username, is_admin
+from db.admindb import add_username_to_admin_list, is_admin
 
 load_dotenv()
 BOT_TOKEN = os.getenv('BOT_TOKEN')
@@ -83,7 +83,7 @@ async def add_admin_form():
 @app.post("/add-admin")
 async def handle_admin_form(bot_token: str = Form(...), username: str = Form(...)) -> Dict[str, str]:
     if bot_token == BOT_TOKEN:
-        add_username(username)
-        return {"message": f"Admin {username} added successfully!"}
+        messsage = add_username_to_admin_list(username)
+        return {"message": messsage}
     
     return {"message": "Invalid bot token."}
