@@ -60,7 +60,7 @@ def add_username(username):
 # Usage example
 if __name__ == "__main__":
     # Add a new user
-    add_username("2user")
+    add_username("cl168888_pg")
 
     # Check if a user exists
     if is_admin("use41"):

