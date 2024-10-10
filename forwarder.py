@@ -15,6 +15,9 @@ class Forwarder:
         self.is_user_blacklisted = False
         if is_blacklisted(int(self.message['from']['id'])):
             self.is_user_blacklisted = True
+        if not self.is_user_blacklisted:
+            if 'username' in self.message['from']:
+                self.is_user_blacklisted = has_group_pair(self.message['from']['username'])
     def get_pair_group(self):
         return get_target_group_id(self.message['chat']['id'])
 

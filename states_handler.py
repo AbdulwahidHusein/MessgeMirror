@@ -4,6 +4,7 @@ from utils import get_group_info_by_username
 from telegram import Bot
 from model import TelegramWebhook
 from typing import Optional
+from utils import normalize_username
 
 
 class CommonMessageHandler:
@@ -87,7 +88,7 @@ class CommonMessageHandler:
         if "forward_origin" in message and message['forward_origin']:
             await self._process_forwarded_user()
         elif "text" in message and message['text']:
-            await self.bot.send_message(chat_id=self.from_id, text="To blacklist a user, please forward a message from them.")
+            await self.process_blacklist_by_username()
 
     async def _process_forwarded_user(self):
         """Process the forwarded user details for blacklisting."""
@@ -114,7 +115,24 @@ class CommonMessageHandler:
 
         await self.bot.send_message(chat_id=self.from_id, text="User has been successfully blacklisted.")
         update_session(self.from_id, None, None)
+        
+    async def process_blacklist_by_username(self):
+        username = self.update_message['text']
+        if username.strip() == "":
+            await self.bot.send_message(chat_id=self.from_id, text="invalid username.")
+        normilized_username = normalize_username(username)[1:]
+        if is_blacklisted(normilized_username):
+            await self.bot.send_message(chat_id=self.from_id, text="This user is already in the blacklist.")
+            return
+        success = create_blacklist_entry(normilized_username)
+        if not success:
+            await self._send_generic_error_message()
+            await self.bot.send_message(chat_id=self.from_id, text="An error occurred. Please try again later.")
+            return
 
+        await self.bot.send_message(chat_id=self.from_id, text="User has been successfully blacklisted.")
+        update_session(self.from_id, None, None)
+        
     async def _send_invalid_username_message(self):
         """Send a message to the user indicating the username is invalid."""
         await self.bot.send_message(chat_id=self.from_id, text="The username you provided is invalid. Please ensure the username is correct and try again.")
