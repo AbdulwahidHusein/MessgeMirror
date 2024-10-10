@@ -164,7 +164,15 @@ class SessionManager:
 
     def _create_blacklist_button(self, user: dict) -> list:
         """Helper method to create a button for each blacklisted user."""
-        button_text = f"{user.get('first_name', '')} {user.get('last_name', '')} (Click to remove from blacklist)".strip() or str(user['userid'])
+        button_text = ""
+        if user.get("first_name") is not None:
+            button_text += f"{user.get('first_name', '')} "
+        if user.get("last_name") is not None:
+            button_text += f"{user.get('last_name', '')} "
+        if len(button_text.strip()) == 0:
+            if user.get("username") is not None:
+                button_text += f"@{user.get('username', '')}"
+        button_text = f"{button_text} (Click to remove from blacklist)".strip() or str(user['userid'])
         return [InlineKeyboardButton(text=button_text, callback_data=f"remove_from_blacklist:{user['userid']}")]
 
     def _create_group_pair_button(self, pair: dict) -> list:
