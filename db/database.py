@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 from pymongo import MongoClient
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from model import LRUCache
 
 # Load environment 
@@ -68,7 +68,9 @@ def create_message_pair(from_group_id, to_group_id, original_id, forwarded_id):
         'from_group_id': from_group_id,
         'to_group_id': to_group_id,
         'original_id': original_id,
-        'forwarded_id': forwarded_id
+        'forwarded_id': forwarded_id,
+        'created_at': datetime.now(timezone.utc)  # Store in UTC
+
     })
 
 
@@ -234,3 +236,31 @@ def get_member_shipgroup_by_id(group_id: int):
     return group
 
 
+def delete_old_message_pairs(from_group_id, before_days):
+    """
+    Delete message pairs for a given `from_group_id` that are older than a specified number of days.
+    
+    Args:
+        from_group_id (int): The group ID from which messages are forwarded.
+        before_days (int): The number of days before which messages should be deleted.
+    
+    Returns:
+        int: The number of message pairs deleted.
+    """
+    # Get the current time in UTC
+    now_utc = datetime.now(timezone.utc)
+
+    # Define the cutoff date by subtracting `before_days` from the current date
+    cutoff_date = now_utc - timedelta(days=before_days)
+
+    # Prepare the query to match messages from `from_group_id` older than the cutoff date
+    query = {
+        'from_group_id': from_group_id,
+        'created_at': {'$lt': cutoff_date}
+    }
+
+    # Perform the deletion
+    deletion_result = message_pair_collection.delete_many(query)
+
+    # Return the number of deleted documents
+    return deletion_result.deleted_count

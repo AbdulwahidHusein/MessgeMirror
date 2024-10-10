@@ -65,7 +65,7 @@ class SessionManager:
                 ["Add to Blacklist", "Remove From Blacklist"],
                 ["Get Pairs", "Get Blacklist"],
                 ["Help", "Exit"],
-                ["Admins"]
+                ["Settings"]
                 
             ]
         )
@@ -184,7 +184,11 @@ class SessionManager:
         
     async def handle_settings(self):
         """Handles the settings command."""
-        await self.bot.send_message(chat_id=self.from_id, text="Settings not implemented yet.")
+        buttons = [
+            [InlineKeyboardButton(text="Get Admins", callback_data="get_admins:null")],
+            [InlineKeyboardButton(text="Delete Old Messages", callback_data="delete_old_messages:null")],
+        ]
+        await self.bot.send_message(chat_id=self.from_id, text="Settings", reply_markup=InlineKeyboardMarkup(buttons))
 
     def _create_blacklist_button(self, user: dict) -> list:
         """Helper method to create a button for each blacklisted user."""
