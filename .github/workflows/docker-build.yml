@@ -21,16 +21,16 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t abdusdocker/mirror-bot:latest .
+          docker build -t abdusdocker/mirror-tg-bot::latest .
 
       - name: Push Docker image
         run: |
-          docker push abdusdocker/mirror-bot:latest
+          docker push abdusdocker/mirror-tg-bot:latest
 
       - name: Run Docker container (optional)
         run: |
-          docker run -d --name mirror-bot \
+          docker run -d --name mirror-tg-bot \
             -e BOT_TOKEN=${{ secrets.BOT_TOKEN }} \
             -e MONGO_URL=${{ secrets.MONGO_URL }} \
             -e OWNER_TELEGRAM_ID=${{ secrets.OWNER_TELEGRAM_ID }} \
-            abdusdocker/mir ror-bot:latest
+            abdusdocker/mirror-tg-bot:latest
