@@ -204,7 +204,7 @@ def create_member_ship(group_info: dict):
         upsert=True
     )
     
-    membership_cache.put(group_id, group_info)
+    membership_cache.put(group_id, {"group_data": group_info})
     return result.upserted_id
 
 

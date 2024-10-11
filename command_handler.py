@@ -44,7 +44,7 @@ class SessionManager:
             'Get Pairs': self.handle_get_pairs,
             'Get Blacklist': self.handle_get_blacklist,
             'Help': self.handle_help,
-            "Seettings": self.handle_settings,
+            "Settings": self.handle_settings,
             'Exit': self.handle_exit,
             "Admins": self.handle_get_admins
         }
@@ -76,7 +76,7 @@ class SessionManager:
         
         await self.bot.send_message(chat_id=self.from_id, text="Please provide the username of the first group, or add me to the group and send any message in the group. You can also select from the list of groups I'm already a member of below:")
         # print(membership_groups)
-        buttons = [[InlineKeyboardButton(text=f"{group['group_data']['title']}", callback_data=f"add_pair_inline:{group['group_data']['id']}")] for group in membership_groups]
+        buttons = [[InlineKeyboardButton(text=f"{group['group_data']['title']}", callback_data=f"add_pair_inline:{group['group_data']['id']}")] for group in membership_groups if 'group_data' in group]
 
         await self._send_message_with_inline_keyboard(chat_id=self.from_id, text="Select a group to add:", buttons=buttons)
         update_session(self.from_id, WAITING_FOR_FIRST_GROUP, None)
