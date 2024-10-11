@@ -93,7 +93,7 @@ class SessionManager:
 
     async def handle_add_to_blacklist(self):
         """Handles adding a user to the blacklist."""
-        await self.bot.send_message(chat_id=self.from_id, text="Please forward a message from the user you wish to blacklist.")
+        await self.bot.send_message(chat_id=self.from_id, text="Please forward a message from the user you wish to blacklist. or Enter username")
         update_session(self.from_id, WAITING_FOR_BLACKLIST_USER)
 
     async def handle_remove_from_blacklist(self):
