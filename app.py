@@ -9,7 +9,7 @@ import logging
 from telegram import Bot
 from telegram.error import TelegramError
 from command_handler import SessionManager
-import call_back_queries
+from call_back_queries import CallbackQueryHandler
 from model import TelegramWebhook
 from forwarder import Forwarder
 
@@ -60,7 +60,9 @@ async def webhook(webhook_data: TelegramWebhook) -> Dict[str, str]:
         
         # Handle callback queries
         elif webhook_data.callback_query:
-            await call_back_queries.handle_callback_query(bot, webhook_data)
+            callback_handler = CallbackQueryHandler(bot)
+            await callback_handler.handle(webhook_data)
+ 
 
         # Return a success response to Telegram
         return {"message": "ok"}

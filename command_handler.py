@@ -186,7 +186,7 @@ class SessionManager:
         """Handles the settings command."""
         buttons = [
             [InlineKeyboardButton(text="Get Admins", callback_data="get_admins:null")],
-            [InlineKeyboardButton(text="Delete Old Messages", callback_data="delete_old_messages:null")],
+            [InlineKeyboardButton(text="Delete Old Messages to save storage", callback_data="delete_old_messages:null")],
         ]
         await self.bot.send_message(chat_id=self.from_id, text="Settings", reply_markup=InlineKeyboardMarkup(buttons))
 

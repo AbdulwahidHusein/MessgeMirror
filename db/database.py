@@ -236,7 +236,13 @@ def get_member_shipgroup_by_id(group_id: int):
     return group
 
 
-def delete_old_message_pairs(from_group_id, before_days):
+def datetime_to_epoch_ms(dt):
+    """Convert a datetime object to epoch milliseconds."""
+    return int(dt.timestamp() * 1000)
+
+from datetime import datetime, timedelta, timezone
+
+def delete_old_message_pairs(before_days, from_group_id=None):
     """
     Delete message pairs for a given `from_group_id` that are older than a specified number of days.
     
@@ -254,13 +260,26 @@ def delete_old_message_pairs(from_group_id, before_days):
     cutoff_date = now_utc - timedelta(days=before_days)
 
     # Prepare the query to match messages from `from_group_id` older than the cutoff date
-    query = {
-        'from_group_id': from_group_id,
-        'created_at': {'$lt': cutoff_date}
-    }
+    query = {'created_at': {'$lt': cutoff_date}}
+    
+    # Add the group ID filter if specified
+    if from_group_id is not None:
+        query['from_group_id'] = from_group_id
 
-    # Perform the deletion
+    # Check if documents match the query before deletion
+    matching_documents_count = message_pair_collection.count_documents(query)
+    
+    if matching_documents_count == 0:
+        print("No matching documents found.")
+        return 0
+    
+    # Perform the deletion and get the result
     deletion_result = message_pair_collection.delete_many(query)
 
-    # Return the number of deleted documents
+
     return deletion_result.deleted_count
+
+
+
+
+

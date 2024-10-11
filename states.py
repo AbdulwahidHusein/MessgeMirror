@@ -10,3 +10,5 @@ WAITING_FOR_BLACKLIST_CONFIRM = "waiting_for_blacklist_confirm"
 
 WAITING_FOR_REMOVE_BLACKLIST_USER = "waiting_for_remove_blacklist_user"
 WAITING_FOR_REMOVE_BLACKLIST_CONFIRM = "waiting_for_remove_blacklist_confirm"
+
+WAITING_DELETE_OLD_MESSAGES_NUM_OF_DAYS = "waiting_for_delete_old_messages_num_of_days"
