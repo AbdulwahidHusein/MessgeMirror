@@ -27,16 +27,16 @@ app.add_middleware(
 app.include_router(admin.router)
 app.include_router(webhook.router)
 
-@app.on_event("startup")
-async def startup_event():
-    if Config.WEB_HOOK_URL:
-        webhook_url = f"https://api.telegram.org/bot{Config.BOT_TOKEN}/setWebhook?url={Config.WEB_HOOK_URL}/webhook"
-        async with httpx.AsyncClient() as client:
-            response = await client.get(webhook_url)
-            if response.status_code == 200:
-                logger.info("Webhook registered successfully.")
-            else:
-                logger.error(f"Failed to register webhook: {response.text}")
+# @app.on_event("startup")
+# async def startup_event():
+#     if Config.WEB_HOOK_URL:
+#         webhook_url = f"https://api.telegram.org/bot{Config.BOT_TOKEN}/setWebhook?url={Config.WEB_HOOK_URL}//mirror-bot"
+#         async with httpx.AsyncClient() as client:
+#             response = await client.get(webhook_url)
+#             if response.status_code == 200:
+#                 logger.info("Webhook registered successfully.")
+#             else:
+#                 logger.error(f"Failed to register webhook: {response.text}")
 
 if __name__ == "__main__":
     import uvicorn

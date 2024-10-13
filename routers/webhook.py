@@ -6,9 +6,9 @@ from models import TelegramWebhook
 from typing import Dict
 
 from utils.helpers import is_group_message, is_private_message, handle_error
-from forwarding.forwarder import Forwarder
-from management.command_handler import SessionManager
-from management.call_back_queries import CallbackQueryHandler
+from mirror_bot.forwarding.forwarder import Forwarder
+from mirror_bot.management.command_handler import SessionManager
+from mirror_bot.management.call_back_queries import CallbackQueryHandler
 
 from db.admindb import is_admin
 from config import Config
@@ -17,7 +17,7 @@ router = APIRouter()
 
 bot = Bot(Config.BOT_TOKEN)
 
-@router.post("/webhook")
+@router.post("/mirror-bot")
 async def webhook(webhook_data: TelegramWebhook) -> Dict[str, str]:
     try:
         # Handle group messages

@@ -1,4 +1,4 @@
-from management.states import WAITING_FOR_FIRST_GROUP, WAITING_FOR_SECOND_GROUP, WAITING_FOR_BLACKLIST_USER, WAITING_DELETE_OLD_MESSAGES_NUM_OF_DAYS
+from .states import WAITING_FOR_FIRST_GROUP, WAITING_FOR_SECOND_GROUP, WAITING_FOR_BLACKLIST_USER, WAITING_DELETE_OLD_MESSAGES_NUM_OF_DAYS
 from db.database import get_sessions_by_user_id, update_session, has_group_pair, create_group_pair, is_blacklisted, create_blacklist_entry
 from telegram import Bot, InlineKeyboardButton, InlineKeyboardMarkup
 from models import TelegramWebhook
