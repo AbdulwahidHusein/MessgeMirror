@@ -165,19 +165,29 @@ def update_session(user_id=None, session_name=None, previous_data=None):
 
     if result.matched_count == 0:
         return create_session(user_id, session_name, previous_data)
-    
-    # Update cache
-    session_cache.put(user_id, {**session_cache.get(user_id), **update_fields})
-    
+
+
+    current_session = session_cache.get(user_id)
+    if current_session is None:
+        current_session = {}  
+    session_cache.put(user_id, {**current_session, **update_fields})
+
     return session_cache.get(user_id)
 
 
-def get_sessions_by_user_id(user_id):
-    """Retrieve a user's session, or create a new one if none exists."""
-    session = session_cache.get(user_id)
+
+def get_sessions_by_user_id(user_id) :
+    session = get_session_from_db(user_id)
     if session is None:
-        session = create_session(user_id, None, None)
+        session = create_session(user_id, None, None)  
     return session
+
+def get_session_from_db(user_id):
+    session_data = session_collection.find_one({"user_id": user_id})  
+    if session_data:
+        return session_data
+    return None
+
 
 
 def delete_session(user_id):

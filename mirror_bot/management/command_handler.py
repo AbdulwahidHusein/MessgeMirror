@@ -22,6 +22,8 @@ class SessionManager:
         self.user_session = get_sessions_by_user_id(self.from_id)
         self.webhook_data = webhook_data
         self.message_handler = CommonMessageHandler(bot, webhook_data)
+        
+
 
     async def handle_message(self):
         text = self.update_message['text']
@@ -201,6 +203,3 @@ class SessionManager:
         group2_title = pair.get("group2_data", {}).get('title', 'Unknown Group 2')
         button_text = f"{group1_title} <> {group2_title}"
         return [InlineKeyboardButton(text=button_text, callback_data='some_callback_data')]
-    
-    
-    

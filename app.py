@@ -3,7 +3,7 @@ import httpx
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import admin, webhook
+from routers import admin, mirror_router, verification_roter
 from config import Config
 import logging
 load_dotenv()
@@ -25,7 +25,8 @@ app.add_middleware(
 
 # Include routers
 app.include_router(admin.router)
-app.include_router(webhook.router)
+app.include_router(mirror_router.router)
+app.include_router(verification_roter.router)
 
 # @app.on_event("startup")
 # async def startup_event():

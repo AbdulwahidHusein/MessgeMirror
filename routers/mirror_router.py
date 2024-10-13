@@ -15,7 +15,7 @@ from config import Config
 
 router = APIRouter()
 
-bot = Bot(Config.BOT_TOKEN)
+bot = Bot(Config.MIRROR_BOT_TOKEN)
 
 @router.post("/mirror-bot")
 async def webhook(webhook_data: TelegramWebhook) -> Dict[str, str]:
