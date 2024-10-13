@@ -1,5 +1,5 @@
 from telegram import Bot, InlineKeyboardButton, InlineKeyboardMarkup
-from model import TelegramWebhook
+from models import TelegramWebhook
 from db.database import (
     delete_group_pair, 
     delete_blacklist_entry, 
@@ -12,7 +12,7 @@ from db.database import (
     delete_old_message_pairs,
 )
 from db.admindb import load_admin_list
-from states import WAITING_FOR_SECOND_GROUP, WAITING_DELETE_OLD_MESSAGES_NUM_OF_DAYS
+from management.states import WAITING_FOR_SECOND_GROUP, WAITING_DELETE_OLD_MESSAGES_NUM_OF_DAYS
 
 class CallbackQueryHandler:
     def __init__(self, bot: Bot):

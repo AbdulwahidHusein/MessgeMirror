@@ -1,13 +1,10 @@
-import os
-from dotenv import load_dotenv
 from pymongo import MongoClient
 from datetime import datetime, timezone, timedelta
-from model import LRUCache
+from models import LRUCache
+from config import Config
 
-# Load environment 
-load_dotenv()
 
-MONGO_URL = os.getenv('MONGO_URL')
+MONGO_URL = Config.MONGO_URL
 client = MongoClient(MONGO_URL)
 db = client['messagemerror']
 

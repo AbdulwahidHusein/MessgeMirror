@@ -1,10 +1,9 @@
-from states import WAITING_FOR_FIRST_GROUP, WAITING_FOR_SECOND_GROUP, WAITING_FOR_BLACKLIST_USER, WAITING_DELETE_OLD_MESSAGES_NUM_OF_DAYS
+from management.states import WAITING_FOR_FIRST_GROUP, WAITING_FOR_SECOND_GROUP, WAITING_FOR_BLACKLIST_USER, WAITING_DELETE_OLD_MESSAGES_NUM_OF_DAYS
 from db.database import get_sessions_by_user_id, update_session, has_group_pair, create_group_pair, is_blacklisted, create_blacklist_entry
-from utils import get_group_info_by_username
 from telegram import Bot, InlineKeyboardButton, InlineKeyboardMarkup
-from model import TelegramWebhook
+from models import TelegramWebhook
 from typing import Optional
-from utils import normalize_username
+from utils.helpers import normalize_username, get_group_info_by_username
 
 
 class CommonMessageHandler:

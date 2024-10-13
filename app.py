@@ -1,93 +1,43 @@
 import os
+import httpx
 from dotenv import load_dotenv
-from typing import Dict
-
-from fastapi import FastAPI, Form
-from fastapi.responses import HTMLResponse
-
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from routers import admin, webhook
+from config import Config
 import logging
-from telegram import Bot
-from telegram.error import TelegramError
-from command_handler import SessionManager
-from call_back_queries import CallbackQueryHandler
-from model import TelegramWebhook
-from forwarder import Forwarder
-
-from db.admindb import add_username_to_admin_list, is_admin
-
 load_dotenv()
-BOT_TOKEN = os.getenv('BOT_TOKEN')
-MONGO_URL = os.getenv('MONGO_URL')
-OWNER_TELEGRAM_ID = os.getenv('OWNER_TELEGRAM_ID')
-
-bot = Bot(BOT_TOKEN)
 
 app = FastAPI()
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Utility function to check if it's a group message
-def is_group_message(webhook_data: TelegramWebhook) -> bool:
-    return webhook_data.message and webhook_data.message.get('chat') and \
-           webhook_data.message['chat'].get('type') in ["group", "supergroup"]
+# CORS middleware for development
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-# Utility function to check if it's a private message
-def is_private_message(webhook_data: TelegramWebhook) -> bool:
-    return webhook_data.message and webhook_data.message['chat'].get('type') == "private"
+# Include routers
+app.include_router(admin.router)
+app.include_router(webhook.router)
 
-async def handle_error(e: Exception, context: str) -> None:
-    logger.error(f"Error in {context}: {e}")
+@app.on_event("startup")
+async def startup_event():
+    if Config.WEB_HOOK_URL:
+        webhook_url = f"https://api.telegram.org/bot{Config.BOT_TOKEN}/setWebhook?url={Config.WEB_HOOK_URL}/webhook"
+        async with httpx.AsyncClient() as client:
+            response = await client.get(webhook_url)
+            if response.status_code == 200:
+                logger.info("Webhook registered successfully.")
+            else:
+                logger.error(f"Failed to register webhook: {response.text}")
 
-# Webhook endpoint for handling incoming Telegram messages
-@app.post("/webhook")
-async def webhook(webhook_data: TelegramWebhook) -> Dict[str, str]:
-    try:
-        # Handle group messages
-        if is_group_message(webhook_data):
-            forwarder = Forwarder(bot, webhook_data)
-            await forwarder.forward()
-        
-        # Handle private messages
-        elif is_private_message(webhook_data):
-            user = webhook_data.message['from']
-            
-            if 'username' in user:
-                username = user['username']
-                if is_admin(username):
-                    session_manager = SessionManager(bot, webhook_data)
-                    await session_manager.handle_message()
-        
-        # Handle callback queries
-        elif webhook_data.callback_query:
-            callback_handler = CallbackQueryHandler(bot)
-            await callback_handler.handle(webhook_data)
- 
-
-        # Return a success response to Telegram
-        return {"message": "ok"}
-    
-    except TelegramError as te:
-        await handle_error(te, "Telegram API")
-    
-    except Exception as e:
-        await handle_error(e, "Webhook processing") 
-    
-    return {"message": "ok"}
-
-
-
-@app.get("/add-admin", response_class=HTMLResponse)
-async def add_admin_form():
-    with open("add_admin_form.html", "r") as file:
-        html_content = file.read()
-    return HTMLResponse(content=html_content)
-
-# Step 2: Handle the form submission
-@app.post("/add-admin")
-async def handle_admin_form(bot_token: str = Form(...), username: str = Form(...)) -> Dict[str, str]:
-    if bot_token == BOT_TOKEN:
-        messsage = add_username_to_admin_list(username)
-        return {"message": messsage}
-    
-    return {"message": "Invalid bot token."}
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host=Config.APP_HOST, port=Config.APP_PORT)

@@ -1,28 +1,18 @@
-import os
-from dotenv import load_dotenv
-from pymongo import MongoClient
+
 from telegram import (
-    Update, InlineKeyboardButton, InlineKeyboardMarkup, Bot, 
+     InlineKeyboardButton, InlineKeyboardMarkup, Bot, 
     ReplyKeyboardMarkup
 )
-from telegram.ext import CallbackContext
-from utils import *
-from states import *
-from states_handler import CommonMessageHandler
-from model import TelegramWebhook
+from management.states import *
+from management.states_handler import CommonMessageHandler
+from models import TelegramWebhook
 from db.admindb import load_admin_list
 
 from db.database import (
      get_group_pairs, get_blacklist, get_sessions_by_user_id, update_session, delete_session, get_member_ship_groups
 )
 
-# Load environment variables
-load_dotenv()
 
-class UserSession:
-    def __init__(self, user_id: int, session_name: str):
-        self.user_id = user_id
-        self.session_name = session_name
 
 class SessionManager:
     def __init__(self, bot: Bot, webhook_data: TelegramWebhook):

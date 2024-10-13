@@ -1,16 +1,15 @@
 import os
 from dotenv import load_dotenv
 from pymongo import MongoClient
+from config import Config
 
-load_dotenv()
 
-MONGO_URI = os.getenv("MONGO_URL")
 
-client = MongoClient(MONGO_URI)
+client = MongoClient(Config.MONGO_URL)
 db = client['admin_database']
 admins_collection = db['adminlist']
 
-def add_username_to_admin_list(username):
+def add_username_to_admin_list(username): 
     if not is_admin(username):
         admins_collection.insert_one({'username': username})
         return f"Username '{username}' added."

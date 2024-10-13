@@ -1,9 +1,13 @@
 import requests
 import os
 from dotenv import load_dotenv
+from models import TelegramWebhook
+import logging
+
 
 load_dotenv()
 BOT_TOKEN = os.getenv('BOT_TOKEN')
+logger = logging.getLogger(__name__)
 
 def normalize_username(username: str) -> str:
     """Normalize the username to always start with @ and handle URLs."""
@@ -12,7 +16,7 @@ def normalize_username(username: str) -> str:
 
     # Handle full URL starting with https:// or http://
     if username.startswith(('https://t.me/', 'http://t.me/')):
-        username = username.split('/')[-1]  # Extract the part after t.me/
+        username = username.split('/')[-1]  
 
     # Ensure the username starts with an @ symbol
     if not username.startswith('@'):
@@ -38,8 +42,17 @@ def get_group_info_by_username(username: str):
         print(f"Failed to get group info: {response.status_code}")
         return None
 
-if __name__ == "__main__":
-    # Example usage with different formats
-    print(get_group_info_by_username("https://t.me/jdbdbdbdhm"))
-    print(get_group_info_by_username("@xcsdjsadf"))
-    print(get_group_info_by_username("sdfndsfsd"))
+
+
+# Utility function to check if it's a group message
+def is_group_message(webhook_data: TelegramWebhook) -> bool:
+    return webhook_data.message and webhook_data.message.get('chat') and \
+           webhook_data.message['chat'].get('type') in ["group", "supergroup"]
+
+# Utility function to check if it's a private message
+def is_private_message(webhook_data: TelegramWebhook) -> bool:
+    return webhook_data.message and webhook_data.message['chat'].get('type') == "private"
+
+async def handle_error(e: Exception, context: str) -> None:
+    logger.error(f"Error in {context}: {e}")
+    
