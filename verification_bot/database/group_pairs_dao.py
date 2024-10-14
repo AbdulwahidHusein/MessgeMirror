@@ -24,3 +24,16 @@ def delete_group_pair(source_group_id: int) -> bool:
     # Assuming source_group_data.id is an integer; change as necessary
     result = group_pairs_collection.delete_one({"source_group_data.id": source_group_id})
     return result.deleted_count > 0
+
+
+def has_group_pair(group_id: int) -> bool:
+    result1 = group_pairs_collection.find_one({"source_group_data.id": group_id})
+    result2 = group_pairs_collection.find_one({"dest_group_data.id": group_id})
+    return result1 or result2
+
+def get_source_group_data(dest_group_id: int) -> Optional[Dict]:
+    result =  group_pairs_collection.find_one({"dest_group_data.id": dest_group_id})
+    
+    if result:
+        return result['source_group_data']
+    return None

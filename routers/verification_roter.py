@@ -7,9 +7,11 @@ from typing import Dict
 
 from utils.helpers import is_group_message, is_private_message, handle_error
 
-from verification_bot.management.bot import VerificationBot
+from verification_bot.management.bot import ManagementBot
 
 from config import Config
+
+from verification_bot.verification.response import VerificationBot
 
 router = APIRouter()
 
@@ -20,11 +22,12 @@ async def webhook(webhook_data: TelegramWebhook) -> Dict[str, str]:
     try:
         # Handle group messages
         if is_group_message(webhook_data):
-            pass
+            verifier = VerificationBot(bot, webhook_data)
+            await verifier.handle_verification()
         
         # Handle private messages
         elif is_private_message(webhook_data):
-            vbot = VerificationBot(bot, webhook_data) 
+            vbot = ManagementBot(bot, webhook_data) 
             await vbot.handle_message() 
             
             # user = webhook_data.message['from']

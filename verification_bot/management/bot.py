@@ -14,7 +14,7 @@ from ..database import (
  
 
 
-class VerificationBot:
+class ManagementBot:
     def __init__(self, bot: Bot, webhook_data: TelegramWebhook):
         self.bot = bot
         self.update_message = webhook_data.message
