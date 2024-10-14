@@ -11,7 +11,7 @@ db = client['messagemerror']
 # Collections
 group_pair_collection = db['GroupPair']
 message_pair_collection = db['MessagePair']
-blacklist_collection = db['Blacklist']
+whitelist_collection = db['Whitelist']
 session_collection = db['Session']
 member_ship_collection = db['MemberShip']
 
@@ -19,8 +19,8 @@ member_ship_collection = db['MemberShip']
 
 # Initialize LRU Caches
 session_cache = LRUCache(capacity=100)
-blacklist_cache = LRUCache(capacity=100)
-membership_cache = LRUCache(capacity=100)
+whitelist_cache = LRUCache(capacity=100)
+membership_cache = LRUCache(capacity=100) 
 
 # =======================================
 # Group Pair Management
@@ -90,46 +90,46 @@ def get_forwarded_id(from_group_id, to_group_id, original_id=None, forwarded_id=
 
 
 # =======================================
-# Blacklist Management
+# whitelist Management
 # =======================================
-def create_blacklist_entry(userid, first_name=None, last_name=None, username=None):
-    """Add a user to the blacklist."""
-    blacklist_entry = {
+def create_whitelist_entry(userid, first_name=None, last_name=None, username=None):
+    """Add a user to the whitelist."""
+    whitelist_entry = {
         'userid': userid,
         'first_name': first_name,
         'last_name': last_name,
         'username': username
     }
     
-    blacklist_collection.insert_one(blacklist_entry)
-    blacklist_cache.put(userid, blacklist_entry)  # Cache the entry
-    return blacklist_entry
+    whitelist_collection.insert_one(whitelist_entry)
+    whitelist_cache.put(userid, whitelist_entry)  # Cache the entry
+    return whitelist_entry
 
 
-def get_blacklist():
-    """Retrieve the list of blacklisted users."""
-    if len(blacklist_cache.cache) == 0:
+def get_whitelist():
+    """Retrieve the list of whitelisted users."""
+    if len(whitelist_cache.cache) == 0:
         # Load from database if not in cache
-        blacklisted_users = list(blacklist_collection.find())
-        for user in blacklisted_users:
-            blacklist_cache.put(user['userid'], user)
-    return list(blacklist_cache.cache.values())
+        whitelisted_users = list(whitelist_collection.find())
+        for user in whitelisted_users:
+            whitelist_cache.put(user['userid'], user)
+    return list(whitelist_cache.cache.values())
 
 
-def delete_blacklist_entry(userid):
-    """Remove a user from the blacklist."""
-    deletion_result = blacklist_collection.delete_one({'userid': userid})
+def delete_whitelist_entry(userid):
+    """Remove a user from the whitelist."""
+    deletion_result = whitelist_collection.delete_one({'userid': userid})
     if deletion_result.deleted_count > 0:
         # Remove from cache if found
-        blacklist_cache.cache.pop(userid, None)
+        whitelist_cache.cache.pop(userid, None)
     return deletion_result
 
 
-def is_blacklisted(userid):
-    """Check if a user is blacklisted."""
-    if blacklist_cache.get(userid) is not None:
+def is_whitelisted(userid):
+    """Check if a user is whitelisted."""
+    if whitelist_cache.get(userid) is not None:
         return True
-    return blacklist_collection.find_one({'userid': userid}) is not None
+    return whitelist_collection.find_one({'userid': userid}) is not None
 
 
 # =======================================

@@ -88,7 +88,7 @@ class StateHandler:
             
 
     async def handle_whitelist_user(self):
-        """Handle the logic when waiting to blacklist a user."""
+        """Handle the logic when waiting to whitelist a user."""
         message = self.update_message
         if "forward_origin" in message and message['forward_origin']:
             await self._process_forwarded_user()

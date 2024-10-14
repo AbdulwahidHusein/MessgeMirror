@@ -1,5 +1,5 @@
-from .states import WAITING_FOR_FIRST_GROUP, WAITING_FOR_SECOND_GROUP, WAITING_FOR_BLACKLIST_USER, WAITING_DELETE_OLD_MESSAGES_NUM_OF_DAYS
-from db.database import get_sessions_by_user_id, update_session, has_group_pair, create_group_pair, is_blacklisted, create_blacklist_entry
+from .states import WAITING_FOR_FIRST_GROUP, WAITING_FOR_SECOND_GROUP, WAITING_FOR_whitelist_USER, WAITING_DELETE_OLD_MESSAGES_NUM_OF_DAYS
+from db.database import get_sessions_by_user_id, update_session, has_group_pair, create_group_pair, is_whitelisted, create_whitelist_entry
 from telegram import Bot, InlineKeyboardButton, InlineKeyboardMarkup
 from models import TelegramWebhook
 from typing import Optional
@@ -22,8 +22,8 @@ class CommonMessageHandler:
             await self.handle_first_group()
         elif session_name == WAITING_FOR_SECOND_GROUP:
             await self.handle_second_group(previous_data)
-        elif session_name == WAITING_FOR_BLACKLIST_USER:
-            await self.handle_blacklist_user()
+        elif session_name == WAITING_FOR_whitelist_USER:
+            await self.handle_whitelist_user()
             
         elif session_name == WAITING_DELETE_OLD_MESSAGES_NUM_OF_DAYS:
             await self.handle_delete_old_messages()
@@ -84,13 +84,13 @@ class CommonMessageHandler:
         await self.bot.send_message(chat_id=self.from_id, text=f"Group pairing successful! The groups '{previous_data['title']}' and '{second_group_data['title']}' have been paired.")
         update_session(self.from_id, None, None)
 
-    async def handle_blacklist_user(self):
-        """Handle the logic when waiting to blacklist a user."""
+    async def handle_whitelist_user(self):
+        """Handle the logic when waiting to whitelist a user."""
         message = self.update_message
         if "forward_origin" in message and message['forward_origin']:
             await self._process_forwarded_user()
         elif "text" in message and message['text']:
-            await self.process_blacklist_by_username()
+            await self.process_whitelist_by_username()
         
         update_session(self.from_id, None, None)
         
@@ -104,7 +104,7 @@ class CommonMessageHandler:
         await self.bot.send_message(chat_id=self.from_id, text=f"are you sure want to delete {nums_of_days} days old messages?", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton(text="Yes", callback_data=f"delte_old_messages_confirm:{nums_of_days}"), InlineKeyboardButton(text="No", callback_data="cancel_delete_old_messages:no")]]))
 
     async def _process_forwarded_user(self):
-        """Process the forwarded user details for blacklisting."""
+        """Process the forwarded user details for whitelisting."""
         forward_origin = self.update_message["forward_origin"]
         sender_user = forward_origin.get("sender_user")
 
@@ -117,33 +117,33 @@ class CommonMessageHandler:
         last_name = sender_user.get("last_name")
         username = self.update_message["from"].get("username")
 
-        if is_blacklisted(user_id):
-            await self.bot.send_message(chat_id=self.from_id, text="This user is already in the blacklist. Please forward a message from a different user.")
+        if is_whitelisted(user_id):
+            await self.bot.send_message(chat_id=self.from_id, text="This user is already in the whitelist. Please forward a message from a different user.")
             return
 
-        success = create_blacklist_entry(user_id, first_name=first_name, last_name=last_name, username=username)
+        success = create_whitelist_entry(user_id, first_name=first_name, last_name=last_name, username=username)
         if not success:
             await self._send_generic_error_message()
             return
 
-        await self.bot.send_message(chat_id=self.from_id, text="User has been successfully blacklisted.")
+        await self.bot.send_message(chat_id=self.from_id, text="User has been successfully whitelisted.")
         update_session(self.from_id, None, None)
         
-    async def process_blacklist_by_username(self):
+    async def process_whitelist_by_username(self):
         username = self.update_message['text']
         if username.strip() == "":
             await self.bot.send_message(chat_id=self.from_id, text="invalid username.")
         normilized_username = normalize_username(username)[1:]
-        if is_blacklisted(normilized_username):
-            await self.bot.send_message(chat_id=self.from_id, text="This user is already in the blacklist.")
+        if is_whitelisted(normilized_username):
+            await self.bot.send_message(chat_id=self.from_id, text="This user is already in the whitelist.")
             return
-        success = create_blacklist_entry(normilized_username)
+        success = create_whitelist_entry(normilized_username)
         if not success:
             await self._send_generic_error_message()
             await self.bot.send_message(chat_id=self.from_id, text="An error occurred. Please try again later.")
             return
 
-        await self.bot.send_message(chat_id=self.from_id, text="User has been successfully blacklisted.")
+        await self.bot.send_message(chat_id=self.from_id, text="User has been successfully whitelisted.")
         update_session(self.from_id, None, None)
         
     async def _send_invalid_username_message(self):

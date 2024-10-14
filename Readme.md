@@ -7,8 +7,8 @@ This repository contains a Message Forwarder Telegram bot built using FastAPI. T
 - **Pairing Groups**: Administrators can add pairs of groups for message forwarding.
 - **Deleting Pairs**: Easily remove group pairs when they are no longer needed.
 - **Viewing Pairs**: View existing group pairs to manage the forwarding settings effectively.
-- **User Blacklisting**: Blacklist users to prevent their message from sent across group pairs.
-- **Removing Users from Blacklist**: Easily manage the blacklist and allow previously blocked users.
+- **User whitelisting**: whitelist users to prevent their message from sent across group pairs.
+- **Removing Users from whitelist**: Easily manage the whitelist and allow previously blocked users.
 - **Message Forwarding**: Automatically forward messages from one group to the paired group.
 
 ## Technology Stack
@@ -56,14 +56,14 @@ This project utilizes:
 
 ## Usage
 
-Once the bot is running, you can interact with it via Telegram. Use the following commands to manage group pairs and user blacklisting:
+Once the bot is running, you can interact with it via Telegram. Use the following commands to manage group pairs and user whitelisting:
 
 - **Add Pair**: Add a new pair of groups.
 - **Remove Pair**: Remove a group pair.
 - **Get Pairs**: List existing group pairs.
-- **Add to Blacklist**: Blacklist a user from sending messages.
-- **Remove From Blacklist**: Remove a user from the blacklist.
-- **Get Blacklist** : Get list of Blacklisted users.
+- **Add to whitelist**: whitelist a user from sending messages.
+- **Remove From whitelist**: Remove a user from the whitelist.
+- **Get whitelist** : Get list of whitelisted users.
 -  **Settings** : Get Settings
 
 

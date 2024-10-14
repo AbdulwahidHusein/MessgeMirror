@@ -2,7 +2,7 @@ from telegram import Bot, InlineKeyboardButton, InlineKeyboardMarkup
 from models import TelegramWebhook
 from db.database import (
     delete_group_pair, 
-    delete_blacklist_entry, 
+    delete_whitelist_entry, 
     get_sessions_by_user_id, 
     get_member_shipgroup_by_id, 
     update_session, 
@@ -33,7 +33,7 @@ class CallbackQueryHandler:
         handlers = {
             "remove_pair": self.handle_remove_pair,
             "confirm_remove_pair": self.handle_confirm_remove_pair,
-            "remove_from_blacklist": self.handle_remove_from_blacklist,  
+            "remove_from_whitelist": self.handle_remove_from_whitelist,  
             "add_pair_inline": self.handle_add_pair_inline,
             "get_admins": self.handle_get_admins,
             "delete_old_messages": self.handle_delete_old_messages,
@@ -85,18 +85,18 @@ class CallbackQueryHandler:
         except (ValueError, IndexError):
             await self.bot.send_message(chat_id=self.user_id, text="Invalid group pair ID. Please try again.")
 
-    async def handle_remove_from_blacklist(self):
+    async def handle_remove_from_whitelist(self):
         try:
             client_id = int(self.callback_data.split(":")[1])
         except (ValueError, IndexError):
             client_id = self.callback_data.split(":")[1]
         
-        success = delete_blacklist_entry(client_id)
+        success = delete_whitelist_entry(client_id)
         if success:
-            await self.bot.send_message(chat_id=self.user_id, text="User has been successfully removed from the blacklist.")
+            await self.bot.send_message(chat_id=self.user_id, text="User has been successfully removed from the whitelist.")
             await self.bot.delete_message(chat_id=self.user_id, message_id=self.message['message_id'])
         else:
-            await self.bot.send_message(chat_id=self.user_id, text="Failed to remove user from the blacklist. The user may not be blacklisted.")
+            await self.bot.send_message(chat_id=self.user_id, text="Failed to remove user from the whitelist. The user may not be whitelisted.")
         update_session(self.user_id, None, None)
 
     async def handle_add_pair_inline(self):

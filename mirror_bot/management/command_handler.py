@@ -9,7 +9,7 @@ from models import TelegramWebhook
 from db.admindb import load_admin_list
 
 from db.database import (
-     get_group_pairs, get_blacklist, get_sessions_by_user_id, update_session, delete_session, get_member_ship_groups
+     get_group_pairs, get_whitelist, get_sessions_by_user_id, update_session, delete_session, get_member_ship_groups
 )
  
 
@@ -31,10 +31,10 @@ class SessionManager:
             '/start': self.start,
             'Add Pair': self.handle_add_pair,
             'Remove Pair': self.handle_remove_pair,
-            'Add to Blacklist': self.handle_add_to_blacklist,
-            'Remove From Blacklist': self.handle_remove_from_blacklist,
+            'Add to whitelist': self.handle_add_to_whitelist,
+            'Remove From whitelist': self.handle_remove_from_whitelist,
             'Get Pairs': self.handle_get_pairs,
-            'Get Blacklist': self.handle_get_blacklist,
+            'Get whitelist': self.handle_get_whitelist,
             'Help': self.handle_help,
             "Settings": self.handle_settings,
             'Exit': self.handle_exit,
@@ -54,8 +54,8 @@ class SessionManager:
             text="Please select an option from the menu below:",
             options=[
                 ["Add Pair", "Remove Pair"],
-                ["Add to Blacklist", "Remove From Blacklist"],
-                ["Get Pairs", "Get Blacklist"],
+                ["Add to whitelist", "Remove From whitelist"],
+                ["Get Pairs", "Get whitelist"],
                 ["Help", "Exit"],
                 ["Settings"]
                 
@@ -83,21 +83,21 @@ class SessionManager:
         buttons = [[InlineKeyboardButton(text=f"{pair['group1_data']['title']} <> {pair['group2_data']['title']}", callback_data=f"remove_pair:{pair['group1_data']['id']}")] for pair in pairs]
         await self._send_message_with_inline_keyboard(chat_id=self.from_id, text="Select a group pair to remove:", buttons=buttons)
 
-    async def handle_add_to_blacklist(self):
-        """Handles adding a user to the blacklist."""
-        await self.bot.send_message(chat_id=self.from_id, text="Please forward a message from the user you wish to blacklist. or Enter username")
-        update_session(self.from_id, WAITING_FOR_BLACKLIST_USER)
+    async def handle_add_to_whitelist(self):
+        """Handles adding a user to the whitelist."""
+        await self.bot.send_message(chat_id=self.from_id, text="Please forward a message from the user you wish to whitelist. or Enter username")
+        update_session(self.from_id, WAITING_FOR_whitelist_USER)
 
-    async def handle_remove_from_blacklist(self):
-        """Handles removing a user from the blacklist."""
-        blacklists = get_blacklist()
-        if not blacklists:
-            await self.bot.send_message(chat_id=self.from_id, text="No users are currently blacklisted.")
+    async def handle_remove_from_whitelist(self):
+        """Handles removing a user from the whitelist."""
+        whitelists = get_whitelist()
+        if not whitelists:
+            await self.bot.send_message(chat_id=self.from_id, text="No users are currently whitelisted.")
             return
 
-        buttons = [self._create_blacklist_button(user) for user in blacklists]
-        await self._send_message_with_inline_keyboard(chat_id=self.from_id, text="Select a user to remove from the blacklist:", buttons=buttons)
-        update_session(self.from_id, WAITING_FOR_REMOVE_BLACKLIST_USER, None)
+        buttons = [self._create_whitelist_button(user) for user in whitelists]
+        await self._send_message_with_inline_keyboard(chat_id=self.from_id, text="Select a user to remove from the whitelist:", buttons=buttons)
+        update_session(self.from_id, WAITING_FOR_REMOVE_whitelist_USER, None)
 
     async def handle_get_pairs(self):
         """Displays the list of all group pairs."""
@@ -109,15 +109,15 @@ class SessionManager:
         buttons = [self._create_group_pair_button(pair) for pair in pairs]
         await self._send_message_with_inline_keyboard(chat_id=self.from_id, text="Here is a list of all group pairs:", buttons=buttons)
 
-    async def handle_get_blacklist(self):
-        """Displays the list of all blacklisted users."""
-        blacklisted_users = get_blacklist()
-        if not blacklisted_users:
-            await self.bot.send_message(chat_id=self.from_id, text="No users have been blacklisted yet.")
+    async def handle_get_whitelist(self):
+        """Displays the list of all whitelisted users."""
+        whitelisted_users = get_whitelist()
+        if not whitelisted_users:
+            await self.bot.send_message(chat_id=self.from_id, text="No users have been whitelisted yet.")
             return
 
-        buttons = [self._create_blacklist_button(user) for user in blacklisted_users]
-        await self._send_message_with_inline_keyboard(chat_id=self.from_id, text="Here is a list of all blacklisted users:", buttons=buttons)
+        buttons = [self._create_whitelist_button(user) for user in whitelisted_users]
+        await self._send_message_with_inline_keyboard(chat_id=self.from_id, text="Here is a list of all whitelisted users:", buttons=buttons)
 
     async def handle_help(self):
         """Sends a help message with a list of available commands."""
@@ -127,10 +127,10 @@ class SessionManager:
     1. *🔄 /start:* Start the bot and display available options.
     2. *➕ Add Group Pair:* Add a pair of groups. You can select from a list of groups the bot is a member of or provide a group username.
     3. *❌ Remove Group Pair:* Remove an existing group pair. You will be prompted to select among existing pairs to delete.
-    4. *🚫 Add to Blacklist:* Add a user to the blacklist so that their messages will not be mirrored.
-    5. *✅ Remove from Blacklist:* Remove a user from the blacklist so that their messages will be mirrored again.
+    4. *🚫 Add to whitelist:* Add a user to the whitelist so that their messages will not be mirrored.
+    5. *✅ Remove from whitelist:* Remove a user from the whitelist so that their messages will be mirrored again.
     6. *📜 List Group Pairs:* List all group pairs.
-    7. *⛔️ Show Blacklist:* List all blacklisted users.
+    7. *⛔️ Show whitelist:* List all whitelisted users.
     8. *🚪 Exit:* End the current session and close the bot.
 
     """
@@ -182,8 +182,8 @@ class SessionManager:
         ]
         await self.bot.send_message(chat_id=self.from_id, text="Settings", reply_markup=InlineKeyboardMarkup(buttons))
 
-    def _create_blacklist_button(self, user: dict) -> list:
-        """Helper method to create a button for each blacklisted user."""
+    def _create_whitelist_button(self, user: dict) -> list:
+        """Helper method to create a button for each whitelisted user."""
         button_text = ""
         if user.get("first_name") is not None:
             button_text += f"{user.get('first_name', '')} "
@@ -194,8 +194,8 @@ class SessionManager:
                 button_text += f"@{user.get('username', '')}"
         if button_text.strip() == "":
             button_text = str(user['userid'])
-        button_text = f"{button_text} (Click to remove from blacklist)".strip() or str(user['userid'])
-        return [InlineKeyboardButton(text=button_text, callback_data=f"remove_from_blacklist:{user['userid']}")]
+        button_text = f"{button_text} (Click to remove from whitelist)".strip() or str(user['userid'])
+        return [InlineKeyboardButton(text=button_text, callback_data=f"remove_from_whitelist:{user['userid']}")]
 
     def _create_group_pair_button(self, pair: dict) -> list:
         """Helper method to create a button for each group pair."""

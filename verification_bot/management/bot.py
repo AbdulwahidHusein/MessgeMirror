@@ -85,16 +85,16 @@ class ManagementBot:
         session_management_dao.update_session(self.from_id, WAITING_FOR_WHITELIST, None)
     
     async def handle_remove_from_whitelist(self):
-        """Handles removing a user from the blacklist."""
+        """Handles removing a user from the whitelist."""
         pass
-        # blacklists = get_blacklist()
-        # if not blacklists:
-        #     await self.bot.send_message(chat_id=self.from_id, text="No users are currently blacklisted.")
+        # whitelists = get_whitelist()
+        # if not whitelists:
+        #     await self.bot.send_message(chat_id=self.from_id, text="No users are currently whitelisted.")
         #     return
 
-        # buttons = [self._create_blacklist_button(user) for user in blacklists]
-        # await self._send_message_with_inline_keyboard(chat_id=self.from_id, text="Select a user to remove from the blacklist:", buttons=buttons)
-        # update_session(self.from_id, WAITING_FOR_REMOVE_BLACKLIST_USER, None)
+        # buttons = [self._create_whitelist_button(user) for user in whitelists]
+        # await self._send_message_with_inline_keyboard(chat_id=self.from_id, text="Select a user to remove from the whitelist:", buttons=buttons)
+        # update_session(self.from_id, WAITING_FOR_REMOVE_whitelist_USER, None)
     
     
     async def handle_get_pairs(self):

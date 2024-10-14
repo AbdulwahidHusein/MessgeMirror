@@ -1,5 +1,5 @@
 from models import TelegramWebhook
-from db.database import has_group_pair, create_message_pair, get_forwarded_id, create_member_ship, is_blacklisted
+from db.database import has_group_pair, create_message_pair, get_forwarded_id, create_member_ship, is_whitelisted
 from telegram import Bot
 from telegram.error import TelegramError
 
@@ -12,17 +12,17 @@ class Forwarder:
         self.status = None
         
         create_member_ship(self.message['chat']) 
-        self.is_user_blacklisted = False
-        if is_blacklisted(int(self.message['from']['id'])):
-            self.is_user_blacklisted = True
-        if not self.is_user_blacklisted:
+        self.is_whitelisted = False
+        if is_whitelisted(int(self.message['from']['id'])):
+            self.is_whitelisted = True
+        if not self.is_whitelisted:
             if 'username' in self.message['from']:
-                self.is_user_blacklisted = is_blacklisted(self.message['from']['username'])
+                self.is_whitelisted = is_whitelisted(self.message['from']['username'])
     def get_pair_group(self):
         return get_target_group_id(self.message['chat']['id'])
 
     async def forward(self): 
-        if self.is_user_blacklisted:
+        if not self.is_whitelisted:
             return 
         try:
             self.target_group_id = self.get_pair_group()
