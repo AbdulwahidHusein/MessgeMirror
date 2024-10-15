@@ -10,7 +10,7 @@ from mirror_bot.forwarding.forwarder import Forwarder
 from mirror_bot.management.command_handler import SessionManager
 from mirror_bot.management.call_back_queries import CallbackQueryHandler
 
-from db.admindb import is_admin
+from mirror_bot.db.admindb import is_admin
 from config import Config
 
 router = APIRouter()

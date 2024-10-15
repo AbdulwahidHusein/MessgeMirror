@@ -1,6 +1,6 @@
 from telegram import Bot, InlineKeyboardButton, InlineKeyboardMarkup
 from models import TelegramWebhook
-from db.database import (
+from mirror_bot.db.database import (
     delete_group_pair, 
     delete_whitelist_entry, 
     get_sessions_by_user_id, 
@@ -11,7 +11,7 @@ from db.database import (
     delete_session,
     delete_old_message_pairs,
 )
-from db.admindb import load_admin_list
+from mirror_bot.db.admindb import load_admin_list
 from .states import WAITING_FOR_SECOND_GROUP, WAITING_DELETE_OLD_MESSAGES_NUM_OF_DAYS
 
 class CallbackQueryHandler:

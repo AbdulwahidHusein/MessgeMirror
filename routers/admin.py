@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Form
 from fastapi.responses import HTMLResponse
 from config import Config
-from db.admindb import add_username_to_admin_list
+from mirror_bot.db.admindb import add_username_to_admin_list
 
 router = APIRouter()
 

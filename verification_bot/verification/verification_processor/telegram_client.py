@@ -8,15 +8,13 @@ API_ID = Config.TELEGRAM_API_ID
 API_HASH = Config.TELEGRAM_API_HASH
 PHONE_NUMBER = Config.TELEGRAM_PHONE_NUMBER
 GROUP_NAME = '@astuwoch'   
-HOURS_BACK = 3                
 
-# Create the Telegram client
+
 client = TelegramClient('session_name', API_ID, API_HASH)
 
-async def main():
+async def main(HOURS_BACK = 3):
     await client.start(phone=PHONE_NUMBER)  
 
-    # Get the group
     group = await client.get_entity(GROUP_NAME)
     tz = pytz.UTC  
 
@@ -40,12 +38,12 @@ async def main():
 
     return messages_list  
 
-def run_bot():
+def run_search():
     loop = asyncio.get_event_loop()
     messages = loop.run_until_complete(main())
     return messages
 
 if __name__ == '__main__':
-    result = run_bot()
+    result = run_search()
     for msg in result:
         print(msg)

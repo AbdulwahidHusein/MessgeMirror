@@ -6,7 +6,7 @@ from telegram import (
 from .states import *
 from .state_handler  import StateHandler
 from models import TelegramWebhook
-from db.admindb import load_admin_list
+# from db.admindb import load_admin_list
 
 from ..database import (
      group_pairs_dao, group_pairs_dao, membership_dao, session_management_dao, settlement_request_dao

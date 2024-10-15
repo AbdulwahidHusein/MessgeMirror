@@ -6,9 +6,9 @@ from telegram import (
 from .states import *
 from .states_handler import CommonMessageHandler
 from models import TelegramWebhook
-from db.admindb import load_admin_list
+from mirror_bot.db.admindb import load_admin_list
 
-from db.database import (
+from mirror_bot.db.database import (
      get_group_pairs, get_whitelist, get_sessions_by_user_id, update_session, delete_session, get_member_ship_groups
 )
  
