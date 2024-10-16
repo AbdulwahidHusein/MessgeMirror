@@ -6,7 +6,7 @@ import logging
 
 
 load_dotenv()
-BOT_TOKEN = os.getenv('BOT_TOKEN')
+BOT_TOKEN = os.getenv('MIRROR_BOT_TOKEN')
 logger = logging.getLogger(__name__)
 
 def normalize_username(username: str) -> str:

@@ -16,6 +16,7 @@ from config import Config
 router = APIRouter()
 
 bot = Bot(Config.MIRROR_BOT_TOKEN)
+# bot.set_webhook(url=Config.WEB_HOOK_URL)
 
 @router.post("/mirror-bot")
 async def webhook(webhook_data: TelegramWebhook) -> Dict[str, str]:
@@ -36,7 +37,7 @@ async def webhook(webhook_data: TelegramWebhook) -> Dict[str, str]:
                     await session_manager.handle_message()
         
         # Handle callback queries
-        elif webhook_data.callback_query:
+        elif webhook_data.callback_query: 
             callback_handler = CallbackQueryHandler(bot)
             await callback_handler.handle(webhook_data)
  

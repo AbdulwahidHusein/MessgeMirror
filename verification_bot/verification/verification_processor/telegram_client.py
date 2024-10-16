@@ -7,43 +7,40 @@ from config import Config
 API_ID = Config.TELEGRAM_API_ID           
 API_HASH = Config.TELEGRAM_API_HASH
 PHONE_NUMBER = Config.TELEGRAM_PHONE_NUMBER
-GROUP_NAME = '@astuwoch'   
-
 
 client = TelegramClient('session_name', API_ID, API_HASH)
 
-async def main(HOURS_BACK = 3):
+async def get_similar_messages(group_username, account_number, HOURS_BACK = 3):
+    messages = []
     await client.start(phone=PHONE_NUMBER)  
 
-    group = await client.get_entity(GROUP_NAME)
+    group = await client.get_entity(group_username)
     tz = pytz.UTC  
 
-    # Calculate the cutoff time with timezone
     cutoff_time = datetime.now(tz) - timedelta(hours=HOURS_BACK)
 
-    # List to hold messages
-    messages_list = []
-
-    # Retrieve and print past messages
-    async for message in client.iter_messages(group):
-        # Ensure message.date is aware (it should be, but this is to make sure)
+    async for message in client.iter_messages(group, search=account_number):
         if message.date.tzinfo is None:
             message.date = message.date.replace(tzinfo=tz)  # Set timezone if naive
 
         # Stop if the message is older than the cutoff time
         if message.date < cutoff_time:
             break
-        
-        messages_list.append(f"[{message.date}] {message.sender_id}: {message.text}")
-
-    return messages_list  
-
-def run_search():
-    loop = asyncio.get_event_loop()
-    messages = loop.run_until_complete(main())
+        messages.append(message)
+    
     return messages
+        
 
+async def run_search(group_username, account_number, hours_back = 3):
+    return await get_similar_messages(group_username, account_number, hours_back)
+
+# Example entry point for testing
 if __name__ == '__main__':
-    result = run_search()
-    for msg in result:
-        print(msg)
+    async def main():
+        result = await run_search("@ababababnl", "67304733674")
+        if result:
+            print(result[0].text)
+        else:
+            print("No messages found.")
+
+    asyncio.run(main())

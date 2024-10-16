@@ -39,7 +39,7 @@ class StateHandler:
         group_info = get_group_info_by_username(group_username)
 
         if not group_info or not group_info.get("ok"):
-            await self.bot.send_message(chat_id=self.from_id, text="Invalid username. Please try again. If the error persists, please contact the bot admin.")
+            await self.bot.send_message(chat_id=self.from_id, text="Invalid username. Please try again.")
             return
 
         if group_pairs_dao.has_group_pair(group_info['result']["id"]):
@@ -66,7 +66,8 @@ class StateHandler:
         group_info = get_group_info_by_username(group_username)
 
         if not group_info or not group_info.get("ok"):
-            await self.bot.send_message(chat_id=self.from_id, text="Invalid username. Please try again. If the error persists, please contact the bot admin.")
+            print("group infor", group_info)
+            await self.bot.send_message(chat_id=self.from_id, text="Invalid username. Please try again. If the error persists, please contact the bot admi.")
             return
 
         if group_pairs_dao.has_group_pair(group_info['result']["id"]):
@@ -151,7 +152,7 @@ class StateHandler:
             username = message['text']
 
         if username:
-            username_whitelisted = whitelist_dao.is_whitelisted('@' + username)
+            username_whitelisted = whitelist_dao.is_whitelisted(username)
             if username_whitelisted:
                 await self.bot.send_message(chat_id=self.from_id, text="This user is whitelisted.")
                 session_management_dao.update_session(self.from_id, None, None)
