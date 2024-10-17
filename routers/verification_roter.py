@@ -23,7 +23,8 @@ async def webhook(webhook_data: TelegramWebhook) -> Dict[str, str]:
         # Handle group messages
         if is_group_message(webhook_data):
             verifier = VerificationBot(bot, webhook_data)
-            await verifier.handle_verification()
+            if webhook_data.message.get("text"):
+                await verifier.handle_verification()
         
         # Handle private messages
         elif is_private_message(webhook_data):

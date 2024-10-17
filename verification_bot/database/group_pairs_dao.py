@@ -37,3 +37,21 @@ def get_source_group_data(dest_group_id: int) -> Optional[Dict]:
     if result:
         return result['source_group_data']
     return None
+
+
+def update_group_title(group_id: int, new_title: str) -> bool:
+    # First, check if the group_id matches the source_group_data.id
+    source_result = group_pairs_collection.update_one(
+        {"source_group_data.id": group_id},
+        {"$set": {"source_group_data.title": new_title}}
+    )
+
+    # If no source group was found, check for a destination group
+    if source_result.modified_count == 0:
+        dest_result = group_pairs_collection.update_one(
+            {"dest_group_data.id": group_id},
+            {"$set": {"dest_group_data.title": new_title}}
+        )
+        return dest_result.modified_count > 0
+
+    return True  

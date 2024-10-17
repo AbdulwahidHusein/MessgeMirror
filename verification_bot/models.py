@@ -8,8 +8,8 @@ class GroupPair(BaseModel):
     created_at : datetime
     
 class SettlementRequestReport(BaseModel):
-    source_group_id : int
-    destination_group_id : int
+    groupa_id : int
+    groupb_id : int
     created_at : datetime
     request_date : datetime
     sorce_group_message_id : int

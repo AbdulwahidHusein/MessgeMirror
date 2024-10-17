@@ -87,6 +87,16 @@ def get_bank_account_name_from_request(request_message: str) -> str:
     
     return ""
 
+def get_merchant_name_from_request(request_message: str) -> str:
+    pattern1 = r"merchant\s*name\s*:?[\s]*([^\n]+)"
+    pattern2 = r"merchant-name\s*:?[\s]*([^\n]+)"
+    match = re.search(pattern1, request_message, re.IGNORECASE)
+    if not match:
+        match = re.search(pattern2, request_message, re.IGNORECASE)
+    if match:
+        return match.group(1).strip()   
+    return ""
+
 def get_settlment_reqmodel(message: str) ->SettlementRequest:
     req = SettlementRequest()
     
@@ -95,6 +105,8 @@ def get_settlment_reqmodel(message: str) ->SettlementRequest:
     
     req.amount = get_amount_from_request(message)
     req.bank_name = get_bank_name_from_request(message)
+    
+    req.merchant_name = get_merchant_name_from_request(message)
     
     return req
     
