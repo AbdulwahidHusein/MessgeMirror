@@ -37,13 +37,4 @@ async def fetch_similar_messages(group_username, settlment_request, hours_back=3
 async def search_messages(group_username, settlment_request, hours_back=3):
     return await fetch_similar_messages(group_username, settlment_request, hours_back)
 
-# Main entry point for testing
-if __name__ == '__main__':
-    async def main():
-        result = await search_messages("@ababababnl", "67304733674", 1000)
-        if result:
-            print(result[0].text)
-        else:
-            print("No messages found.") 
 
-    asyncio.run(main())
