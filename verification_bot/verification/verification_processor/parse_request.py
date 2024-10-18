@@ -39,18 +39,18 @@ def get_bank_account_number_from_request(request_message: str) -> str:
 def get_bank_name_from_request(request_message: str) -> str:
     """Extract the bank name from the request message."""
     patterns = [
-        r"Bank\s*:?[\s]*([^\n]+)",
-        r"bank\s*name\s*:?[\s]*([^\n]+)"  
+        r"bank\s*name\s*:?[\s]*([^\n]+)",
+        r"Bank\s*:?[\s]*([^\n]+)",        
     ]
     return extract_data_with_patterns(request_message, patterns)
 
 def get_amount_from_request(request_message: str) -> str: 
     """Extract the amount from the request message."""
     patterns = [
+        r"amount\s*balance\s*:?[\s]*([^\n]+)",
         r"Amount\s*:?[\s]*([^\n]+)",
         r"amt\s*:?[\s]*([^\n]+)",
         r"balance\s*:?[\s]*([^\n]+)",
-        r"amount\s*balance\s*:?[\s]*([^\n]+)"
     ]
     return extract_data_with_patterns(request_message, patterns)
 
@@ -68,7 +68,8 @@ def get_merchant_name_from_request(request_message: str) -> str:
     """Extract the merchant name from the request message."""
     patterns = [
         r"merchant\s*name\s*:?[\s]*([^\n]+)",
-        r"merchant-name\s*:?[\s]*([^\n]+)"
+        r"merchant-name\s*:?[\s]*([^\n]+)",
+        r"merchant\s*:?[\s]*([^\n]+)"
     ]
     return extract_data_with_patterns(request_message, patterns)
 
@@ -108,6 +109,6 @@ if __name__ == "__main__":
     merchant name M89
 
     Amount :  THB 700,000
-    Bank :   Bangkok Bank
+    Bank name:   Bangkok Bank
     Bank account name :   MR ADITYA
     Bank account number :   542-7-12307-9"""))

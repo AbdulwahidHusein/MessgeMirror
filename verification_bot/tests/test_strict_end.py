@@ -33,6 +33,10 @@ class TestCheckStrictEndsWith(unittest.TestCase):
     def test_empty_string_a(self):
         # Test case where string_a is empty
         self.assertFalse(check_strict_ends_with("", "THB700000"))
+        
+    def test_new_line(self):
+        # Test case where string_a is empty
+        self.assertFalse(check_strict_ends_with("THB 700,0\n00", "THB700000"))
 
 if __name__ == '__main__':
     unittest.main()

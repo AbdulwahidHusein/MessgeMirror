@@ -9,7 +9,7 @@ def convert_object_id(obj):
     return obj
 
 # Create a new SettlementRequestReport
-def create_settlement_request_report(groupa_id: int, groupb_id: int, groupa_message_id: int = None, groupb_message_id: int = None, status: str = None, index_on_groupa: int = None, groupa_similar_message_ids: List[int] = None) -> str:
+async def create_settlement_request_report(groupa_id: int, groupb_id: int, groupa_message_id: int = None, groupb_message_id: int = None, status: str = None, index_on_groupa: int = None, groupa_similar_message_ids: List[int] = None) -> str:
     new_report = {
         "groupa_id": groupa_id,
         "groupb_id": groupb_id,
@@ -25,7 +25,7 @@ def create_settlement_request_report(groupa_id: int, groupb_id: int, groupa_mess
     return str(result.inserted_id)
 
 # Function to get report by groupa_id, groupa_message_id, and index_on_groupa
-def get_report_by_groupa(groupa_id: int, groupa_message_id: int = None, index_on_groupa: int = None):
+async def get_report_by_groupa(groupa_id: int, groupa_message_id: int = None, index_on_groupa: int = None):
     query = {
         "groupa_id": groupa_id,
     }
@@ -38,7 +38,7 @@ def get_report_by_groupa(groupa_id: int, groupa_message_id: int = None, index_on
     return list(reports)
 
 
-def get_report_by_groupb(groupb_id: int, groupb_message_id: int = None, status: str = None):
+async def get_report_by_groupb(groupb_id: int, groupb_message_id: int = None, status: str = None):
     query = {
         "groupb_id": groupb_id,
     }
@@ -52,7 +52,7 @@ def get_report_by_groupb(groupb_id: int, groupb_message_id: int = None, status: 
 
 
 
-def get_report(
+async def get_report(
         groupa_id: Optional[int] = None,
         groupb_id: Optional[int] = None,
         groupa_message_id: Optional[int] = None,

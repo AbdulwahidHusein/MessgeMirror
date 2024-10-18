@@ -5,9 +5,10 @@ from .parse_request import get_settlement_request_model
 from .models import HandleResponse
 from verification_bot.database import whitelist_dao, settlement_request_dao
 from . import response_types as response_types
+from typing import Any
 
 
-async def handle(message: dict, source_group_id: int, source_group_title: str) -> HandleResponse:
+async def handle(message: dict, source_group_id: Any, source_group_title: str) -> HandleResponse:
     response = HandleResponse(status=response_types.NOT_VERIFIED)
     
     try:
