@@ -1,7 +1,7 @@
 
 import re
 from .models import SettlementRequest
-from .parse_request import get_settlment_reqmodel
+from .parse_request import get_settlement_request_model, flexible_string_search
     
 
 
@@ -13,43 +13,41 @@ def check_strict_ends_with(string_a, string_b):
     
     # print(string_a, string_b)
     
-    string_a = string_a.strip()  # Trim leading/trailing spaces from string_a
-    string_b = string_b.strip()  # Trim leading/trailing spaces from string_b
+    string_a = string_a.strip()
+    string_b = string_b.strip()
+    
+    
+    
 
     # If string_a is shorter than string_b, return False
     if len(string_a) < len(string_b):
         # print(ga_message, gb_message)
         return False
-
-    # Check if the end of string_a matches string_b
-    if string_a[-len(string_b):] != string_b:
-        # print(ga_message, gb_message)
-        return False
     
-    # Check the character just before string_b starts in string_a
-    if len(string_a) == len(string_b):  # string_b is the whole string_a
-        return True  # Perfect match
-
-    # If there's a character before string_b in string_a, check if it's a space, colon, or delimiter
-    preceding_char = string_a[-len(string_b) - 1]
-    if preceding_char in (' ', ':', ",", "."):
+    enda = len(string_a) - 1
+    endb = len(string_b) - 1
+    
+    specials = [' ', '-', "/", ","]
+    
+    while enda >= 0 and endb >= 0:
+        if string_a[enda] in specials:
+            enda -= 1
+        else:
+            if string_a[enda].lower() != string_b[endb].lower():
+                return False
+            enda -= 1
+            endb -= 1
+            
+    if endb < 0 and  enda >=0 and string_a[enda] in (' ', ':', ",", "."):
         return True
-    
-    # If the preceding character is not a valid delimiter, it's a false match
-    # print(ga_message, gb_message)
+    if enda == -1 and endb == -1:
+        return True
     return False
 
     
 
 
 def verify_messages(ga_message, request : SettlementRequest):
-    
-    #ignore comma in amount
-    ga_message = re.sub(r'(?<=\d)[,-](?=\d)', '', ga_message)
-
-    request.amount = request.amount.replace(',','')
-    request.bank_account_number = request.bank_account_number.replace('-','')
-    
     
     message_lines = [line.strip() for line in ga_message.split("\n") if line.strip()]
     # print(message_lines)
@@ -60,13 +58,13 @@ def verify_messages(ga_message, request : SettlementRequest):
     
     # Find positions of matches in the message
     for i, current_line in enumerate(message_lines):
-        if request.bank_account_number in current_line:
+        if flexible_string_search(current_line, request.bank_account_number):
             bank_account_number_poses.append((i, 0))
-        if request.bank_account_name in current_line:
+        if flexible_string_search(current_line, request.bank_account_name):
             bank_account_name_poses.append((i, 1))
-        if request.amount in current_line:
+        if flexible_string_search(current_line, request.amount):
             amount_poses.append((i, 2))
-        if request.bank_name in current_line:
+        if flexible_string_search(current_line, request.bank_name):
             bank_name_poses.append((i, 3))
     
     # Combine all positions
@@ -122,39 +120,7 @@ def verify_messages(ga_message, request : SettlementRequest):
     
     
 if __name__ == "__main__":
-    ga_message = """
-        Amount :  THB 360000
-                Bank :   SCB
-                Bank account number    8602315265
-                Bank account name :   Daka Runn
-                
-                Amount :  THB 360000
-                Bank :   SCB
-                Bank account number    8602315265
-                Bank account name :   Daka d Run 
-                
-            Amount :  THB 360000
-                Bank :   SCB
-                Bank account number    8602315265
-                Bank account nasme :   Dsaka Run 
-                
-                as
-                Amount :  THB 360000
-                Bank :   SCB
-                Bank account number    8602315265
-                Bank account name :   Daka Run 
-            """
-            
-    gb_message = """
-    Settlement Request
-    W69
-    Amount :  THB 360000
-    Bank :   SCB
-    Bank account number    8602315265
-    Bank account name :   Daka Run
-    """
-
-    model = get_settlment_reqmodel(gb_message)
-    print(verify_messages(ga_message, model))
+    comp = check_strict_ends_with("Amount :  THB 700,000", "THB700000")
+    print(comp)
     
     

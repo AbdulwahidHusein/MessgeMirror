@@ -9,7 +9,7 @@ from models import TelegramWebhook
 # from db.admindb import load_admin_list
 
 from ..database import (
-     group_pairs_dao, group_pairs_dao, membership_dao, session_management_dao, settlement_request_dao
+     group_pairs_dao, group_pairs_dao, membership_dao, session_management_dao, whitelist_dao
 )
  
 
@@ -86,15 +86,14 @@ class ManagementBot:
     
     async def handle_remove_from_whitelist(self):
         """Handles removing a user from the whitelist."""
-        pass
-        # whitelists = get_whitelist()
-        # if not whitelists:
-        #     await self.bot.send_message(chat_id=self.from_id, text="No users are currently whitelisted.")
-        #     return
+        whitelists = whitelist_dao.get_whitelisted_users()
+        if not whitelists:
+            await self.bot.send_message(chat_id=self.from_id, text="No users are currently whitelisted.")
+            return
 
-        # buttons = [self._create_whitelist_button(user) for user in whitelists]
-        # await self._send_message_with_inline_keyboard(chat_id=self.from_id, text="Select a user to remove from the whitelist:", buttons=buttons)
-        # update_session(self.from_id, WAITING_FOR_REMOVE_whitelist_USER, None)
+        buttons = [self._create_whitelist_button(user) for user in whitelists]
+        await self._send_message_with_inline_keyboard(chat_id=self.from_id, text="Select a user to remove from the whitelist:", buttons=buttons)
+        session_management_dao.update_session(self.from_id, WAITING_FOR_REMOVE_WHITELIST, None)
     
     
     async def handle_get_pairs(self):
@@ -112,23 +111,26 @@ class ManagementBot:
         await self.bot.send_message(chat_id=self.from_id, text="Please forward a message from the user you wish to check. or Enter username")
         session_management_dao.update_session(self.from_id, WAITING_FOR_WHITELIST_CHECK, None)
         
+    
+    
         
         
         
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+    def _create_whitelist_button(self, user: dict) -> list:
+        """Helper method to create a button for each whitelisted user."""
+        button_text = ""
+        if user.get("first_name") is not None:
+            button_text += f"{user.get('first_name', '')} "
+        if user.get("last_name") is not None:
+            button_text += f"{user.get('last_name', '')} "
+        if len(button_text.strip()) == 0:
+            if user.get("username") is not None:
+                button_text += f"@{user.get('username', '')}"
+        if button_text.strip() == "":
+            button_text = str(user['user_id'])
+        button_text = f"{button_text} (Click to remove from whitelist)".strip() or str(user['user_id'])
+        return [InlineKeyboardButton(text=button_text, callback_data=f"remove_from_whitelist:{user['user_id']}")]
+    
     async def _send_message_with_keyboard(self, chat_id: int, text: str, options: list):
         """Helper method to send a message with a custom reply keyboard."""
         await self.bot.send_message(

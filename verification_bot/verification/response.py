@@ -2,7 +2,7 @@ from telegram import Bot
 from models import TelegramWebhook
 import threading
 from ..database import membership_dao, group_pairs_dao
-from .verification_processor import handle_verification
+from .verification_processor import handle_verification, response_types
 from .verification_processor.parse_request import contains_settlement_request
 from verification_bot.database import whitelist_dao, settlement_request_dao, group_pairs_dao
 import asyncio
@@ -37,7 +37,7 @@ class VerificationBot:
                     
                     await send_message_with_retry(self.bot, groupb_chat_id, response.status, groupb_message_id)
                     
-                    if response.status != "confirmed":
+                    if response.status and response.status:
                         report = {
                             "groupa_id": source_group_data['id'],
                             "groupb_id": groupb_chat_id,
@@ -46,7 +46,8 @@ class VerificationBot:
                         }
                         if  response.matching_message:
                             report["groupa_message_id"] = response.matching_message.id
-                        if response.matching_index:
+                            
+                        if response.matching_index and response.status == response_types.VERIFIED:
                             report["index_on_groupa"] = response.matching_index
                         
                         if response.similar_messages:

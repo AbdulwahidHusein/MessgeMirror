@@ -62,15 +62,16 @@ def get_whitelisted_users() -> List[Dict]:
 
 
 # Remove a user from the whitelist (i.e., delete their entry from the database)
-def remove_from_whitelist(user_id: int) -> bool:
+def remove_from_whitelist(user_id) -> bool:
     """
     Remove a user from the whitelist by deleting their entry from the database.
     
     Arguments:
-    user_id -- the ID of the user to remove.
+    user_id -- the ID of the user to remove.(it can be a username)
     
     Returns:
     True if a user was removed, otherwise False.
     """
     result = whitelist_collection.delete_one({'user_id': user_id}) 
-    return result.deleted_count > 0  
+    
+    return result.deleted_count > 0   
