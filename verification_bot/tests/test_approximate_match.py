@@ -1,7 +1,5 @@
 import unittest
-from datetime import datetime
-from typing import Optional
-from fuzzywuzzy import fuzz
+
 
 from verification.verification_processor.check_similarity import SettlementRequest, approximate_match
 
@@ -35,8 +33,8 @@ class TestApproximateMatch(unittest.TestCase):
         search_text = "merchant name: abCstore, Amount: 100.00, bank: xyzbank"
         self.assertTrue(approximate_match(search_text, self.request, threshold=80))
 
-    def test_similar_but_not_matching(self):
-        search_text = "Merchant Name: A B C Store, Amount: 100.00"
+    def test_too_spaces(self):
+        search_text = "Merchant Name: A B C Store, Amount: 100.00, bank: XYZ Bank"
         self.assertFalse(approximate_match(search_text, self.request, threshold=80))
 
     def test_empty_fields(self):
