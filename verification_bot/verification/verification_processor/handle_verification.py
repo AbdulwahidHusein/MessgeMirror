@@ -19,7 +19,7 @@ async def handle(message: dict, source_group_id: Any, source_group_title: str) -
             response.status = "merchant name not in group"
             return response
         
-        similar_messages = await telegram_client.search_messages(source_group_id, settlement_request.bank_account_number)
+        similar_messages = await telegram_client.search_messages(source_group_id, settlement_request)
 
         response.similar_messages = similar_messages
 
@@ -33,7 +33,7 @@ async def handle(message: dict, source_group_id: Any, source_group_title: str) -
                 response.matching_message = ga_message
                 response.matching_index = idx
                 
-                request_exists = settlement_request_dao.get_report_by_groupa(ga_message.chat_id, ga_message.id, idx)
+                request_exists = await settlement_request_dao.get_report_by_groupa(ga_message.chat_id, ga_message.id, idx)
                 # print(request_exists)
                 if request_exists:
                     response.status = response_types.ALREADY_VERIFIED

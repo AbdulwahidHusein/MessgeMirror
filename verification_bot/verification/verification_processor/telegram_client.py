@@ -3,13 +3,15 @@ from datetime import datetime, timedelta
 import pytz  
 from telethon import TelegramClient
 from config import Config
+from .check_similarity import approximate_match
+
 
 # Telegram API credentials
 API_ID = Config.TELEGRAM_API_ID           
 API_HASH = Config.TELEGRAM_API_HASH
 PHONE_NUMBER = Config.TELEGRAM_PHONE_NUMBER
 
-async def fetch_similar_messages(group_username, account_number, hours_back=30):
+async def fetch_similar_messages(group_username, settlment_request, hours_back=30):
     messages = []
     # Using async with to manage the client session
     async with TelegramClient('session_name', API_ID, API_HASH) as client:
@@ -27,13 +29,13 @@ async def fetch_similar_messages(group_username, account_number, hours_back=30):
             # Stop searching if the message is older than the cutoff time
             if message.date < cutoff_time:
                 break
-            if message.text:
+            if message.text and approximate_match(message.text, settlment_request):
                 messages.append(message)
     
     return messages
 
-async def search_messages(group_username, account_number, hours_back=3):
-    return await fetch_similar_messages(group_username, account_number, hours_back)
+async def search_messages(group_username, settlment_request, hours_back=3):
+    return await fetch_similar_messages(group_username, settlment_request, hours_back)
 
 # Main entry point for testing
 if __name__ == '__main__':

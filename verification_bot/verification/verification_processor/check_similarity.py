@@ -1,72 +1,68 @@
-import re
+from datetime import datetime
+from typing import Optional
+from fuzzywuzzy import fuzz
 
-def extract_settlement_requests(text):
-    requests_list = []
-    current_request = {}
+class SettlementRequest:
+    def __init__(self, merchant_name: Optional[str] = None, amount: Optional[str] = None,
+                 bank_name: Optional[str] = None, bank_account_name: Optional[str] = None,
+                 bank_account_number: Optional[str] = None):
+        self.merchant_name = merchant_name
+        self.amount = amount
+        self.bank_name = bank_name
+        self.bank_account_name = bank_account_name
+        self.bank_account_number = bank_account_number
+
+def approximate_match(text: str, request: SettlementRequest, threshold: int = 80) -> bool:
+    """
+    Check if the given text approximately matches any of the fields in the SettlementRequest.
+
+    Arguments:
+    text -- the text to compare against the request fields.
+    request -- the SettlementRequest object.
+    threshold -- the similarity threshold (0-100).
+
+    Returns:
+    True if there's a match above the threshold, otherwise False.
+    """
+    # Prepare fields for comparison
+    fields_to_check = [
+        request.merchant_name,
+        request.amount,
+        request.bank_name,
+        request.bank_account_name,
+        request.bank_account_number
+    ]
+    matched_count = 0
     
-    # Updated regex to allow optional spaces before and after the colon
-    amount_pattern = re.compile(r"^Amount\s*:?\s*(\d+\s*\w+)")
-    bank_pattern = re.compile(r"^Bank\s*:?\s*(\w+)")
-    account_name_pattern = re.compile(r"^Bank account name\s*:?\s*(\d+\s*\w+)")
-    account_number_pattern = re.compile(r"^Bank account number\s*:?\s*(\d+\s*\w+)")
+    for field in fields_to_check:
+        if field:  
+            similarity = fuzz.partial_ratio(text.lower(), field.lower())
+            if similarity >= threshold:
+                matched_count += 1
+                if matched_count >= 3:
+                    return True  
     
-    for line in text.splitlines():
-        line = line.strip()  # Clean up spaces and newlines
-        
-        # Debugging: print the line to see what is being processed
-        print(f"Processing line: {line}")
-        
-        # Try matching the line with the updated regex patterns
-        amount_match = amount_pattern.match(line)
-        bank_match = bank_pattern.match(line)
-        account_name_match = account_name_pattern.match(line)
-        account_number_match = account_number_pattern.match(line)
-        
-        if amount_match:
-            current_request['Amount'] = amount_match.group(1).strip()
-            print(f"Matched Amount: {current_request['Amount']}")
-        elif bank_match:
-            current_request['Bank'] = bank_match.group(1).strip()
-            print(f"Matched Bank: {current_request['Bank']}")
-        elif account_name_match:
-            current_request['Bank account name'] = account_name_match.group(1).strip()
-            print(f"Matched Bank account name: {current_request['Bank account name']}")
-        elif account_number_match:
-            current_request['Bank account number'] = account_number_match.group(1).strip()
-            print(f"Matched Bank account number: {current_request['Bank account number']}")
+    return False  # No matches found
 
-        # If all fields are found, append the current request and reset for the next one
-        if len(current_request) == 4:
-            requests_list.append(current_request)
-            print(f"Completed request: {current_request}")
-            current_request = {}
 
-    return requests_list
+if __name__ == "__main__":
+    request = SettlementRequest(
+        merchant_name="ABCStore",
+        amount="100.00",
+        bank_name="XYZBank",
+        bank_account_name="fdgs df",
+        bank_account_number="673-724-7715"
+    )
 
-# Sample text input
-text = """
-Settlement Request
-Merchant name: m98
-Amount    150.000
-Bank  KBANK
-Bank account name  นางสาว บุตษยา พันธ์บุตร
-Bank account number 0528411061
+    search_text = """
+    Merchant Name: ABC Store
+    Amount: 100
+    Bank: XYZ Bank
+    Bank Account Name: fdsdf
+    Bank Account Number: 673-724-7715
+    
+    """  # Text to search for
+    
+    is_matching = approximate_match(search_text, request, threshold=80)
 
-Settlement Request
-Merchant name: m98
-Amount:150.000
-Bank:KBANK
-Bank account name: นางสาว บุตษยา พันธ์บุตร
-Bank account number: 0528411061
-
-Settlement Request
-Merchant name: m98
-Amount 100.000
-Bank : BBL
-Bank account name  :   รินรดา แซ่ลี้
-Bank account number 2625362229
-"""
-
-# Call the function and print the result
-requests = extract_settlement_requests(text)
-print("Final Requests:", requests)
+    print(f"Does the text search_text approximately match the request? {'Yes' if is_matching else 'No'}")

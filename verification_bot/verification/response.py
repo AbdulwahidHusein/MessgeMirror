@@ -1,4 +1,5 @@
 import asyncio
+
 from telegram import Bot
 from models import TelegramWebhook
 from ..database import membership_dao
@@ -14,7 +15,7 @@ from verification_bot.database import (
 class VerificationBot:
     def __init__(self, bot: Bot, webhook_data: TelegramWebhook):
         self.bot = bot
-        self.webhook_data = webhook_data
+        self.webhook_data = webhook_data   
         self.update_message = webhook_data.message
         self.from_id = self.update_message['from']['id']
         
@@ -30,7 +31,7 @@ class VerificationBot:
             )
         
         # Create membership entry
-        await membership_dao.create_member_ship(group_info=chat_info)
+        membership_dao.create_member_ship(group_info=chat_info)
 
     async def handle_verification(self):
         """Handle verification requests based on messages."""
@@ -45,7 +46,7 @@ class VerificationBot:
 
     async def _process_settlement_request(self, group_chat_id, group_message_id):
         """Process the settlement request and send responses."""
-        source_group_data = await group_pairs_dao.get_source_group_data(group_chat_id)
+        source_group_data = group_pairs_dao.get_source_group_data(group_chat_id)
 
         if source_group_data:
             source_identifier = self._get_source_identifier(source_group_data)
@@ -78,6 +79,7 @@ class VerificationBot:
             "groupb_id": group_chat_id,
             "groupb_message_id": group_message_id,
             "status": response.status,
+            'issuer_id' : self.from_id
         }
         
         if response.matching_message:

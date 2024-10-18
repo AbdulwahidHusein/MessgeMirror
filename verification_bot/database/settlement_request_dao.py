@@ -9,7 +9,7 @@ def convert_object_id(obj):
     return obj
 
 # Create a new SettlementRequestReport
-async def create_settlement_request_report(groupa_id: int, groupb_id: int, groupa_message_id: int = None, groupb_message_id: int = None, status: str = None, index_on_groupa: int = None, groupa_similar_message_ids: List[int] = None) -> str:
+async def create_settlement_request_report(groupa_id: int, groupb_id: int, groupa_message_id: int = None, groupb_message_id: int = None, status: str = None, index_on_groupa: int = None, groupa_similar_message_ids: List[int] = None, issuer_id = None) -> str:
     new_report = {
         "groupa_id": groupa_id,
         "groupb_id": groupb_id,
@@ -20,6 +20,7 @@ async def create_settlement_request_report(groupa_id: int, groupb_id: int, group
         "status": status,
         "index_on_groupa": index_on_groupa,
         "groupa_similar_message_ids" : groupa_similar_message_ids,
+        'issuer_id': issuer_id
     }
     result = settlement_requests_collection.insert_one(new_report)
     return str(result.inserted_id)
@@ -61,7 +62,8 @@ async def get_report(
         index_on_groupa: Optional[int] = None,
         groupa_similar_message_ids: Optional[List[int]] = None,
         created_at: Optional[datetime] = None,
-        request_date: Optional[datetime] = None
+        request_date: Optional[datetime] = None,
+        issuer_id: Optional[int] = None
     ):
     
     query = {}
@@ -84,6 +86,8 @@ async def get_report(
         query["created_at"] = {"$gte": created_at}  # Filter by created_at if provided
     if request_date is not None:
         query["request_date"] = {"$gte": request_date}  # Filter by request_date if provided
+    if issuer_id is not None:
+        query["issuer_id"] = issuer_id
 
     reports = settlement_requests_collection.find(query)
     
