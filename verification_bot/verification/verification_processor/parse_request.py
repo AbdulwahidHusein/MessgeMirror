@@ -76,7 +76,6 @@ def get_merchant_name_from_request(request_message: str) -> str:
     return extract_data_with_patterns(request_message, patterns)
 
 def get_settlement_request_model(message: str) -> SettlementRequest:
-    print("message", message)
     """Construct a SettlementRequest model from the message."""
     req = SettlementRequest()
     
@@ -84,7 +83,9 @@ def get_settlement_request_model(message: str) -> SettlementRequest:
     req.bank_account_number = get_bank_account_number_from_request(message)
     req.amount = get_amount_from_request(message)
     req.bank_name = get_bank_name_from_request(message)
-    req.merchant_name = get_merchant_name_from_request(message) 
+    req.merchant_name = get_merchant_name_from_request(message)
+    
+    print(req)
     
     return req
 

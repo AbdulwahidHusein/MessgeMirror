@@ -51,6 +51,37 @@ class TestApproximateMatch(unittest.TestCase):
         Account Number: 673-724-7715
         """
         self.assertTrue(approximate_match(search_text, self.request, threshold=80))
+        
+    def test_far_match(self):
+        message = """Bank account number :  735-731-688-94
+            Bank account name :  ชนาพร
+              Bank :    bbLT
+            Amount THb 100,0000
 
+              Bank account number :  735-731-688-94
+                        Bank account name :  ชนาพร                    ดวงดารา
+              Bank :    bbLT
+            Amount THb 100,0000
+
+              Bank account number :  abc735731688-94
+                        Bank account name :  ชนาพร      ดวงดารา
+              Bank :    bbLT
+            Amount THb 100,0000
+
+
+              Bank account number :  tbh 735731-688-94
+                        Bank account name :  ชนาพร ดวงดารา
+              Bank :    bbLT
+            Amount THb 100,0000"""
+            
+        request = SettlementRequest(
+            merchant_name="m98",
+            amount="THb1000000",
+            bank_name="bbLT",
+            bank_account_name="ชนาพรดวงดารา",
+            bank_account_number="tbh73573168894"
+        )
+        self.assertTrue(approximate_match(message, request, threshold=70))
+        
 if __name__ == "__main__":
     unittest.main()

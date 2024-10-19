@@ -121,11 +121,11 @@ class TestSettlementRequestParsing(unittest.TestCase):
         
         
         message3 = """settlment request
-                merchant name m98
-                Bank account number : tbh 735731-688-94
-                Bank account name : ชนาพร ดวงดารา
-                  Bank :    bbLT
-                Amount THb 100,0000"""
+            merchant name m98
+              Bank account number :  tbh 735731-688-94
+                        Bank account name :  ชนาพร ดวงดารา
+              Bank :    bbLT
+            Amount THb 100,0000"""
         request = get_settlement_request_model(message3)
         
         self.assertEqual(request.merchant_name, "m98")
