@@ -29,7 +29,7 @@ async def fetch_similar_messages(group_username, settlment_request, hours_back=3
             # Stop searching if the message is older than the cutoff time
             if message.date < cutoff_time:
                 break
-            if message.text and approximate_match(message.text, settlment_request):
+            if message.text and approximate_match(message.text, settlment_request, 70):
                 messages.append(message)
     
     return messages

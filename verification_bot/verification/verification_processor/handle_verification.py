@@ -13,21 +13,21 @@ async def handle(message: dict, source_group_id: Any, source_group_title: str) -
     
     try:
         settlement_request = get_settlement_request_model(message['text'])
-        print(settlement_request)
+
 
         if settlement_request and settlement_request.merchant_name.lower() not in source_group_title.lower():
             response.status = "merchant name not in group"
             return response
         
         similar_messages = await telegram_client.search_messages(source_group_id, settlement_request)
+        
 
         response.similar_messages = similar_messages
-
 
         for ga_message in similar_messages:
             
             
-            verified, idx = verify_messages(ga_message.text, settlement_request)
+            verified, idx = verify_messages(ga_message.text.replace('\xa0', ' '), settlement_request)
             
             if verified :
                 response.matching_message = ga_message
@@ -56,3 +56,7 @@ async def handle(message: dict, source_group_id: Any, source_group_title: str) -
         logging.error(f"Error handling message: {e}")
         response.status = ""
         return response
+    
+    
+
+
