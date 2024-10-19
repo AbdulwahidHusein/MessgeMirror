@@ -12,3 +12,4 @@ Requests==2.32.3
 Telethon==1.37.0
 uvicorn==0.32.0
 python-multipart
+python-Levenshtein
