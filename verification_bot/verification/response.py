@@ -85,11 +85,12 @@ class VerificationBot:
         if response.matching_message:
             report["groupa_message_id"] = response.matching_message.id
 
-        if response.matching_index and response.status == response_types.VERIFIED:
+        if response.matching_index is not None and response.status == response_types.VERIFIED:
             report["index_on_groupa"] = response.matching_index
 
         if response.similar_messages:
             report['groupa_similar_message_ids'] = [m.id for m in response.similar_messages]
+            
 
         await settlement_request_dao.create_settlement_request_report(**report)
 
