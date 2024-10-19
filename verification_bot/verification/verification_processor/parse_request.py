@@ -40,7 +40,9 @@ def get_bank_name_from_request(request_message: str) -> str:
     """Extract the bank name from the request message."""
     patterns = [
         r"bank\s*name\s*:?[\s]*([^\n]+)",
-        r"Bank\s*:?[\s]*([^\n]+)",        
+        r"Bank-name\s*:?[\s]*([^\n]+)", 
+       r"bank(?!\s*account)\s*:?[\s]*([^\n]+)"
+     
     ]
     return extract_data_with_patterns(request_message, patterns)
 

@@ -8,6 +8,7 @@ from typing import Dict
 from utils.helpers import is_group_message, is_private_message, handle_error
 
 from verification_bot.management.bot import ManagementBot
+from verification_bot.management.callback_queries import CallbackQueryHandler
 
 from config import Config
 
@@ -41,7 +42,9 @@ async def webhook(webhook_data: TelegramWebhook) -> Dict[str, str]:
         
             # Handle callback queries
         elif webhook_data.callback_query:
-            pass
+            callback_handler = CallbackQueryHandler(bot)
+            
+            await callback_handler.handle(webhook_data)
             # callback_handler = CallbackQueryHandler(bot)
             # await callback_handler.handle(webhook_data)
  

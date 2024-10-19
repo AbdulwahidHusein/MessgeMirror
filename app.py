@@ -1,4 +1,6 @@
 import os
+import tracemalloc
+
 import httpx
 from dotenv import load_dotenv
 from fastapi import FastAPI
@@ -8,6 +10,9 @@ from config import Config
 import logging
 load_dotenv()
 
+tracemalloc.start(
+    
+)
 app = FastAPI()
 
 

@@ -13,7 +13,7 @@ async def handle(message: dict, source_group_id: Any, source_group_title: str) -
     
     try:
         settlement_request = get_settlement_request_model(message['text'])
-         
+        print(settlement_request)
 
         if settlement_request and settlement_request.merchant_name.lower() not in source_group_title.lower():
             response.status = "merchant name not in group"

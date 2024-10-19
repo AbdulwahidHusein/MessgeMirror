@@ -19,10 +19,15 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}  
 
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'  # Specify the Python version you need
+
+      - name: Decode session file
+        run: |
+          echo "${{ secrets.SESSION_B64 }}" | base64 -d > session.session
+
       - name: Build Docker image
         run: |
           docker build -t abdusdocker/mirror-tg-bot:latest .
-
-      - name: Push Docker image
-        run: |
-          docker push abdusdocker/mirror-tg-bot:latest

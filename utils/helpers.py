@@ -67,4 +67,4 @@ def is_private_message(webhook_data: TelegramWebhook) -> bool:
     return False
 
 async def handle_error(e: Exception, context: str) -> None:
-    logger.error(f"Error in {context}: {e}")
+    logger.error(f"Error in {context}: {e.with_traceback(e.__traceback__)}")

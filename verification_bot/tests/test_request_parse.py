@@ -100,6 +100,24 @@ class TestSettlementRequestParsing(unittest.TestCase):
         self.assertEqual(request.bank_name, "ChaseBank")
         self.assertEqual(request.bank_account_name, "JohnDoe")
         self.assertEqual(request.bank_account_number, "123456789")
+        
+        message2 = """
+        
+        message Settlement request:
+            settlment request
+            Merchant name M98
+            Bank account number :  735-731-688-94
+                        Bank account name :  ชนาพร ดวงดารา
+            Bank :    bbLT
+            Amount THb 100,0000
+        """
+        request = get_settlement_request_model(message2)
+        
+        self.assertEqual(request.merchant_name, "M98")
+        self.assertEqual(request.amount, "THb1000000")
+        self.assertEqual(request.bank_name, "bbLT")
+        self.assertEqual(request.bank_account_name, "ชนาพรดวงดารา")
+        self.assertEqual(request.bank_account_number, "73573168894")
 
 
 if __name__ == '__main__':
