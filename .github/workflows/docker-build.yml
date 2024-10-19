@@ -26,7 +26,7 @@ jobs:
 
       - name: Decode session file
         run: |
-          echo "${{ secrets.SESSION_B64 }}" | base64 -d > telegram_session.session
+          echo "${{ secrets.SESSION_B64 }}" | base64 -d > session.session
 
       - name: Build Docker image
         run: |

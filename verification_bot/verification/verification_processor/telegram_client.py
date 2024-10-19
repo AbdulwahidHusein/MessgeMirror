@@ -14,7 +14,7 @@ PHONE_NUMBER = Config.TELEGRAM_PHONE_NUMBER
 async def fetch_similar_messages(group_username, settlment_request, hours_back=30):
     messages = []
     # Using async with to manage the client session
-    async with TelegramClient('telegram_session', API_ID, API_HASH) as client:
+    async with TelegramClient('session', API_ID, API_HASH) as client:
         # Get group entity and set timezon
             
         group = await client.get_entity(group_username)
