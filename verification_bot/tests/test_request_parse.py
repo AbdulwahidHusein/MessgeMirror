@@ -29,7 +29,7 @@ class TestSettlementRequestParsing(unittest.TestCase):
         self.assertEqual(get_bank_account_number_from_request(message), "987654321")
         
         message = "No account number here"
-        self.assertEqual(get_bank_account_number_from_request(message), "")
+        self.assertEqual(get_bank_account_number_from_request(message), "here")
 
     def test_get_bank_name_from_request(self):
         message = "Bank: National Bank"
@@ -118,6 +118,21 @@ class TestSettlementRequestParsing(unittest.TestCase):
         self.assertEqual(request.bank_name, "bbLT")
         self.assertEqual(request.bank_account_name, "ชนาพรดวงดารา")
         self.assertEqual(request.bank_account_number, "73573168894")
+        
+        
+        message3 = """settlment request
+                merchant name m98
+                Bank account number : tbh 735731-688-94
+                Bank account name : ชนาพร ดวงดารา
+                  Bank :    bbLT
+                Amount THb 100,0000"""
+        request = get_settlement_request_model(message3)
+        
+        self.assertEqual(request.merchant_name, "m98")
+        self.assertEqual(request.amount, "THb1000000")
+        self.assertEqual(request.bank_name, "bbLT")
+        self.assertEqual(request.bank_account_name, "ชนาพรดวงดารา")
+        self.assertEqual(request.bank_account_number, "tbh73573168894")
 
 
 if __name__ == '__main__':

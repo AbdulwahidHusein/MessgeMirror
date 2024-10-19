@@ -29,10 +29,10 @@ def extract_data_with_patterns(request_message: str, patterns: list) -> str:
 def get_bank_account_number_from_request(request_message: str) -> str:
     """Extract the bank account number from the request message."""
     patterns = [
-        r"Bank\s*account\s*number\s*:?\s*([0-9\- ]+)",
-        r"account\s*number\s*:?\s*([0-9\- ]+)",
-        r"Bank-account-number\s*:?\s*([0-9\-]+)",
-        r"account-number\s*:?\s*([0-9\-]+)"
+        r"Bank\s*account\s*number\s*:?\s*([^\n]+)",
+        r"account\s*number\s*:?\s*([^\n]+)",
+        r"Bank-account-number\s*:?\s*([^\n]+)",
+        r"account-number\s*:?\s*([^\n]+)"
     ]
     return extract_data_with_patterns(request_message, patterns)
 
