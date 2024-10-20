@@ -20,6 +20,7 @@ bot = Bot(Config.VERIFICATION_BOT_TOKEN)
 
 @router.post("/verification-bot")
 async def webhook(webhook_data: TelegramWebhook) -> Dict[str, str]:
+
     try:
         # Handle group messages
         if is_group_message(webhook_data):

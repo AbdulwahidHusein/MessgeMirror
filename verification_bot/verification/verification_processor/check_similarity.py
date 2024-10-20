@@ -2,6 +2,24 @@ from datetime import datetime
 from typing import Optional
 from fuzzywuzzy import fuzz
 
+
+
+BASIC_SETTLEMENT_REQUEST_FIELDS = [
+    "merchant name",
+    "amount",
+    "bank name",
+    "bank account name",
+    "bank account number"
+]
+
+SETTLEMENT_REQUEST_EXAMPLE = """
+Settlement Request:
+Merchant Name: ABC Store
+Amount: USD 1000.00
+Bank: Chase Bank
+Bank Account Name: John Doe
+"""
+
 class SettlementRequest:
     def __init__(self, merchant_name: Optional[str] = None, amount: Optional[str] = None,
                  bank_name: Optional[str] = None, bank_account_name: Optional[str] = None,
@@ -45,6 +63,15 @@ def approximate_match(text: str, request: SettlementRequest, threshold: int = 80
     return False  # No matches found
 
 
+def get_settlment_score(text):
+    lower = text.lower()
+    score = 0
+    for field in BASIC_SETTLEMENT_REQUEST_FIELDS:
+        similarity = fuzz.partial_ratio(lower, field.lower())
+        score += similarity
+        
+    return score/ len(BASIC_SETTLEMENT_REQUEST_FIELDS)
+
 if __name__ == "__main__":
     request = SettlementRequest(
         merchant_name="ABCStore",
@@ -55,14 +82,26 @@ if __name__ == "__main__":
     )
 
     search_text = """
-    Merchant Name: ABC Store
-    Amount: 100
-    Bank: XYZ Bank
-    Bank Account Name: fdsdf
-    Bank Account Number: 673-724-7715
-    
+        Bank Account Number: 735-731-688-94
+        Bank Account Name: ชนาพร
+        Bank: bbLT
+        Amount: THB 1,000,000
+
+        Bank Account Number: 735-731-688-94
+        Bank Account Name: ชนาพร ดวงดารา
+        Bank: bbLT
+        Amount: THB 1,000,000
+
+        Bank Account Number: abc735731688-94
+        Bank Account Name: ชนาพร ดวงดารา
+        Bank: bbLT
+        Amount: THB 1,000,000
+
+        Bank Account Number: tbh 735731-688-94
+        Bank Account Name: ชนาพร ดวงดารา
+        Bank: bbLT
+Amount: THB 1,000,000
     """  # Text to search for
     
-    is_matching = approximate_match(search_text, request, threshold=80)
-
-    print(f"Does the text search_text approximately match the request? {'Yes' if is_matching else 'No'}")
+    score = get_settlment_score(search_text)
+    print(score)

@@ -22,6 +22,7 @@ bot = Bot(Config.MIRROR_BOT_TOKEN)
 @router.post("/mirror-bot")
 async def webhook(webhook_data: TelegramWebhook) -> Dict[str, str]:
     try:
+        
         # Handle group messages
         if is_group_message(webhook_data) and services_enabled("MIRRORING_STATUS"):
             if get_service_state("MIRRORING_STATUS"):
@@ -53,4 +54,4 @@ async def webhook(webhook_data: TelegramWebhook) -> Dict[str, str]:
     except Exception as e:
         await handle_error(e, "Webhook processing") 
     
-    return {"message": "ok"}
+    return {"message": "ok"} 

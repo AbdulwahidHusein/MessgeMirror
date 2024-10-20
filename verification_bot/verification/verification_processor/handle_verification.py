@@ -1,5 +1,5 @@
 import logging
-from . import telegram_client
+from . import search_message
 from .content_alignment import verify_messages
 from .parse_request import get_settlement_request_model
 from .models import HandleResponse
@@ -10,7 +10,7 @@ from collections import defaultdict
 
 async def handle(message: dict, source_group_id: Any, source_group_title: str) -> HandleResponse:
     response = HandleResponse(status=response_types.NOT_VERIFIED)
-    
+   
     try:
         settlement_request = get_settlement_request_model(message['text'])
 
@@ -19,22 +19,22 @@ async def handle(message: dict, source_group_id: Any, source_group_title: str) -
             response.status = response_types.NOT_CONFIRMED
             return response
         
-        similar_messages = await telegram_client.search_messages(source_group_id, settlement_request)
+        similar_messages = await search_message.search(source_group_id, settlement_request)
         
         matching_messages = defaultdict(list)
         non_matching_messages = []
         
         for ga_message in similar_messages:
-            matches, idx = verify_messages(ga_message.text.replace('\xa0', ''), settlement_request)
+            matches, idx = verify_messages(ga_message.get("text").replace('\xa0', ''), settlement_request)
             if matches:
-                already_exists = await settlement_request_dao.get_report_by_groupa(ga_message.chat_id, ga_message.id, idx)
+                already_exists = await settlement_request_dao.get_report_by_groupa(ga_message.get("chat").get("id"), ga_message.get("message_id"), idx)
                 if already_exists:
                     matching_messages['already_verified'].append(ga_message)
                     continue
                 
-                user_whitelisted = whitelist_dao.is_whitelisted(ga_message.sender.id) if ga_message.sender.id else False
-                if not user_whitelisted and ga_message.sender.username:
-                    user_whitelisted = whitelist_dao.is_whitelisted(ga_message.sender.username)
+                user_whitelisted = whitelist_dao.is_whitelisted(ga_message.get("from").get("id") if ga_message.get("from") else False)
+                if not user_whitelisted and ga_message.get("from") and ga_message.get("from") and ga_message.get("from").get("username"):
+                    user_whitelisted = whitelist_dao.is_whitelisted(ga_message.get("from").get("username"))
                 
                 if not user_whitelisted:
                     matching_messages['user_not_whitelisted'].append(ga_message)
@@ -64,7 +64,7 @@ async def handle(message: dict, source_group_id: Any, source_group_title: str) -
     
         response.status = response_types.NOT_VERIFIED
         return response
-        
+          
 
         # response.similar_messages = similar_messages
 

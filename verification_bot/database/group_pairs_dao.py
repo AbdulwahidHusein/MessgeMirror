@@ -31,6 +31,10 @@ def has_group_pair(group_id: int) -> bool:
     result2 = group_pairs_collection.find_one({"dest_group_data.id": group_id})
     return result1 or result2
 
+def is_source_group(group_id: int):
+    result = group_pairs_collection.find_one({"source_group_data.id": group_id})
+    return result
+
 def get_source_group_data(dest_group_id: int) -> Optional[Dict]:
     result =  group_pairs_collection.find_one({"dest_group_data.id": dest_group_id})
     
@@ -54,4 +58,4 @@ def update_group_title(group_id: int, new_title: str) -> bool:
         )
         return dest_result.modified_count > 0
 
-    return True  
+    return True

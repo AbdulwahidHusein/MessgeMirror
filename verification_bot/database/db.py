@@ -14,3 +14,5 @@ membership_collection = db['memberships']
 user_session_collection = db["user_session"]
 whitelist_collection = db['whitelist']
 admin_list_collection = db['adminlist']
+
+group_message_collection = db['group_messages']

@@ -76,6 +76,5 @@ def services_enabled(NAME):
     return os.getenv(NAME, "true").lower() == "true"
 
 def save_service_state(ENV_PATH, NAME, state: bool):
-    os.putenv(NAME, "true" if state else "false")
-    # set_key(ENV_PATH, NAME, "true" if state else "false")
+    set_key(ENV_PATH, NAME, "true" if state else "false")
     return  True    
