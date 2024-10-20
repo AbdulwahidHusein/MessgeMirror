@@ -34,7 +34,9 @@ class ManagementBot:
             'Add user to Whitelist': self.handle_add_to_whitelist,
             'Remove User From Whitelist': self.handle_remove_from_whitelist,
             'Get Group Pairs': self.handle_get_pairs,
-            'Check Whitelisted user': self.check_whitelist
+            'Check Whitelisted user': self.check_whitelist,
+            'settings': self.handle_settings,
+            'Exit': self.handle_exit
         }
         
         handler = handlers.get(text)
@@ -52,6 +54,7 @@ class ManagementBot:
                 ["Add Group Pair", "Remove Group Pair"],
                 ["Add user to Whitelist", "Remove User From Whitelist"],
                 ["Get Group Pairs", "Check Whitelisted user"],
+                ["settings", "Exit"],
                 
             ]
         )
@@ -154,4 +157,17 @@ class ManagementBot:
         group2_title = pair.get("dest_group_data", {}).get('title', 'Unknown Group 2')
         button_text = f"{group1_title} <> {group2_title}"
         return [InlineKeyboardButton(text=button_text, callback_data='some_callback_data')]
+    
+    async def handle_settings(self):
+        """Handles the settings command."""
+        buttons = [
+            [InlineKeyboardButton(text="View Admins", callback_data="get_admins:null")],
+        ]
+        await self.bot.send_message(chat_id=self.from_id, text="Settings", reply_markup=InlineKeyboardMarkup(buttons))
+    
+    async def handle_exit(self):
+        """Ends the current session and sends a session exit message."""
+        session_management_dao.delete_session(self.from_id)
+        await self.bot.send_message(chat_id=self.from_id, text="Session ended.")
+
         

@@ -1,7 +1,8 @@
-from telegram import Bot
+from telegram import Bot, InlineKeyboardButton, InlineKeyboardMarkup
 from models import TelegramWebhook
-from verification_bot.database import whitelist_dao, group_pairs_dao, session_management_dao, membership_dao
+from verification_bot.database import whitelist_dao, group_pairs_dao, session_management_dao, membership_dao, admin_dao
 from .states import WAITING_FOR_DEST_GROUP
+
 
 class CallbackQueryHandler:
     def __init__(self, bot: Bot):
@@ -21,7 +22,8 @@ class CallbackQueryHandler:
         handlers = {
             "remove_from_whitelist": self.handle_remove_from_whitelist,
             "remove_pair" : self.handle_remove_pair,
-            'add_pair_inline' : self.handle_add_pair_inline
+            'add_pair_inline' : self.handle_add_pair_inline,
+            "get_admins" : self.handle_get_admins,
         }
         
         if action in handlers:
@@ -94,4 +96,21 @@ class CallbackQueryHandler:
         else:
             await self.bot.send_message(chat_id=self.user_id, text="Something went wrong! Please try again.")
             session_management_dao.delete_session(self.user_id)
+            
+            
+    async def handle_get_admins(self):
+        try:
+            admin_list = admin_dao.load_admin_list()
+        except Exception as e:
+            await self.bot.send_message(chat_id=self.user_id, text=f"Error loading admin list: {e}")
+            return
+
+        if not admin_list:
+            await self.bot.send_message(chat_id=self.user_id, text="No admins found.")
+            return
+
+        buttons = [[InlineKeyboardButton(text=f"@{username}", callback_data=f"admin_actions:{username}")] for username in admin_list]
+        await self.bot.send_message(chat_id=self.user_id, text="Admins:", reply_markup=InlineKeyboardMarkup(buttons))
+        
+        await self.bot.delete_message(chat_id=self.user_id, message_id=self.message['message_id'])
             

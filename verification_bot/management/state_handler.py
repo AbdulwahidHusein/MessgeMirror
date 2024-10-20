@@ -66,7 +66,7 @@ class StateHandler:
         group_info = get_group_info_by_username(group_username)
 
         if not group_info or not group_info.get("ok"):
-            print("group infor", group_info)
+            # print("group infor", group_info)
             await self.bot.send_message(chat_id=self.from_id, text="Invalid username. Please try again. If the error persists, please contact the bot admi.")
             return
 
