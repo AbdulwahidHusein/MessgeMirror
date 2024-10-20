@@ -179,6 +179,8 @@ class SessionManager:
         buttons = [
             [InlineKeyboardButton(text="Get Admins", callback_data="get_admins:null")],
             [InlineKeyboardButton(text="Delete Old Messages to save storage", callback_data="delete_old_messages:null")],
+            [InlineKeyboardButton(text="Disable Mirroring", callback_data="disable_mirroring:null")],
+            [InlineKeyboardButton(text="Enable Mirroring", callback_data="enable_mirroring:null")],
         ]
         await self.bot.send_message(chat_id=self.from_id, text="Settings", reply_markup=InlineKeyboardMarkup(buttons))
 

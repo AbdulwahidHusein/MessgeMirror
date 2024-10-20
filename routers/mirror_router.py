@@ -5,12 +5,13 @@ from telegram.error import TelegramError
 from models import TelegramWebhook
 from typing import Dict
 
-from utils.helpers import is_group_message, is_private_message, handle_error
+from utils.helpers import is_group_message, is_private_message, handle_error, services_enabled
 from mirror_bot.forwarding.forwarder import Forwarder
 from mirror_bot.management.command_handler import SessionManager
 from mirror_bot.management.call_back_queries import CallbackQueryHandler
 
 from mirror_bot.db.admindb import is_admin
+from mirror_bot.db.database import get_service_state
 from config import Config
 
 router = APIRouter()
@@ -22,9 +23,10 @@ bot = Bot(Config.MIRROR_BOT_TOKEN)
 async def webhook(webhook_data: TelegramWebhook) -> Dict[str, str]:
     try:
         # Handle group messages
-        if is_group_message(webhook_data):
-            forwarder = Forwarder(bot, webhook_data)
-            await forwarder.forward()
+        if is_group_message(webhook_data) and services_enabled("MIRRORING_STATUS"):
+            if get_service_state("MIRRORING_STATUS"):
+                forwarder = Forwarder(bot, webhook_data)
+                await forwarder.forward()
         
         # Handle private messages
         elif is_private_message(webhook_data):

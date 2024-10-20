@@ -10,6 +10,8 @@ from mirror_bot.db.database import (
     create_group_pair, 
     delete_session,
     delete_old_message_pairs,
+    add_or_update_service,
+    get_service_state
 )
 from mirror_bot.db.admindb import load_admin_list
 from .states import WAITING_FOR_SECOND_GROUP, WAITING_DELETE_OLD_MESSAGES_NUM_OF_DAYS
@@ -38,8 +40,10 @@ class CallbackQueryHandler:
             "get_admins": self.handle_get_admins,
             "delete_old_messages": self.handle_delete_old_messages,
             "delte_old_messages_confirm": self.handle_delete_old_messages_confirm,
-        }
-
+            
+            'disable_mirroring' : self.handle_disable_mirroring,
+            'enable_mirroring' : self.handle_enable_mirroring
+        }  
         if action in handlers:
             await handlers[action]()
         else:
@@ -157,4 +161,23 @@ class CallbackQueryHandler:
             await self.bot.send_message(chat_id=self.user_id, text=f"Successfully deleted {nums_of_days} days old messages.")
         else:
             await self.bot.send_message(chat_id=self.user_id, text="No matching messages Found.")
-            
+    
+    async def handle_disable_mirroring(self):
+        if get_service_state("MIRRORING_STATUS"):
+            success = add_or_update_service("MIRRORING_STATUS", False)
+            if success:
+                await self.bot.send_message(chat_id=self.user_id, text="Mirroring has been disabled successfully.")
+            else:
+                await self.bot.send_message(chat_id=self.user_id, text="Failed to disable mirroring. Please try again later.")
+        else:
+            await self.bot.send_message(chat_id=self.user_id, text="Mirroring is already disabled.")
+  
+    async def handle_enable_mirroring(self): 
+        if not get_service_state("MIRRORING_STATUS"):
+            success = add_or_update_service( "MIRRORING_STATUS", True)
+            if success:
+                await self.bot.send_message(chat_id=self.user_id, text="Mirroring has been enabled successfully.")
+            else:
+                await self.bot.send_message(chat_id=self.user_id, text="Failed to enable mirroring. Please try again later.")
+        else:
+            await self.bot.send_message(chat_id=self.user_id, text="Mirroring is already enabled.")

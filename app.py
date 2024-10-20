@@ -1,25 +1,26 @@
 import os
 import tracemalloc
-
 import httpx
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from routers import admin, mirror_router, verification_roter
 from config import Config
 import logging
+from fastapi.responses import JSONResponse
+
 load_dotenv()
 
-tracemalloc.start(
-    
-)
+# Start memory tracking
+tracemalloc.start()
+
 app = FastAPI()
 
-
+# Configure logger
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# CORS middleware for development
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -28,22 +29,32 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
+
 app.include_router(admin.router)
 app.include_router(mirror_router.router)
 app.include_router(verification_roter.router)
 
-# @app.on_event("startup")
-# async def startup_event():
-#     if Config.WEB_HOOK_URL:
-#         webhook_url = f"https://api.telegram.org/bot{Config.BOT_TOKEN}/setWebhook?url={Config.WEB_HOOK_URL}//mirror-bot"
-#         async with httpx.AsyncClient() as client:
-#             response = await client.get(webhook_url)
-#             if response.status_code == 200:
-#                 logger.info("Webhook registered successfully.")
-#             else:
-#                 logger.error(f"Failed to register webhook: {response.text}")
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.error(f"Unhandled exception occurred: {exc}")
+    return JSONResponse(
+        status_code=500,
+        content={"message": "An internal error occurred. Please try again later."},
+    )
+
+
+def log_memory_usage():
+    snapshot = tracemalloc.take_snapshot()
+    top_stats = snapshot.statistics("lineno")
+
+    logger.info("[Top 10 Memory Usage]")
+    for stat in top_stats[:10]:
+        logger.info(stat)
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host=Config.APP_HOST, port=Config.APP_PORT)
+    try:
+        uvicorn.run(app, host=Config.APP_HOST, port=Config.APP_PORT)
+    except Exception as e:
+        logger.error(f"Error occurred while running the app: {e}")

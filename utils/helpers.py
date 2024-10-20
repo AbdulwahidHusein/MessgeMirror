@@ -1,11 +1,11 @@
 import requests
 import os
-from dotenv import load_dotenv
+from dotenv import load_dotenv, set_key
 from models import TelegramWebhook
 import logging
 
 
-load_dotenv()
+load_dotenv(override=True)
 BOT_TOKEN = os.getenv('MIRROR_BOT_TOKEN')
 logger = logging.getLogger(__name__)
 
@@ -68,3 +68,14 @@ def is_private_message(webhook_data: TelegramWebhook) -> bool:
 
 async def handle_error(e: Exception, context: str) -> None:
     logger.error(f"Error in {context}: {e.with_traceback(e.__traceback__)}")
+
+
+
+def services_enabled(NAME):
+    print("STATUS OF MIRRoring", os.getenv(NAME))
+    return os.getenv(NAME, "true").lower() == "true"
+
+def save_service_state(ENV_PATH, NAME, state: bool):
+    os.putenv(NAME, "true" if state else "false")
+    # set_key(ENV_PATH, NAME, "true" if state else "false")
+    return  True    

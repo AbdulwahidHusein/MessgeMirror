@@ -2,7 +2,7 @@ from pymongo import MongoClient
 from datetime import datetime, timezone, timedelta
 from models import LRUCache
 from config import Config
-
+import logging
 
 MONGO_URL = Config.MONGO_URL
 client = MongoClient(MONGO_URL)
@@ -14,6 +14,9 @@ message_pair_collection = db['MessagePair']
 whitelist_collection = db['Whitelist']
 session_collection = db['Session']
 member_ship_collection = db['MemberShip']
+
+
+config_collection = db['Config']
 
 
 
@@ -288,5 +291,39 @@ def delete_old_message_pairs(before_days, from_group_id=None):
 
 
 
+
+service_cache = {}
+
+def add_or_update_service(service_name: str, state: bool):
+    result = config_collection.update_one(
+        {"service_name": service_name},
+        {"$set": {"is_enabled": state}},
+        upsert=True
+    )
+    
+    service_cache[service_name] = state
+    
+    if result.upserted_id:
+        logging.info(f"Added new service: {service_name} with state: {state}")
+    else:
+        logging.info(f"Updated existing service: {service_name} with state: {state}")
+    return True
+
+def get_service_state(service_name: str) -> bool:
+    if service_name in service_cache:
+        logging.info(f"Cache hit for {service_name}.")
+        return service_cache[service_name]
+    
+
+    logging.info(f"Cache miss for {service_name}.")
+    service = config_collection.find_one({"service_name": service_name})
+    
+    if service:
+        service_cache[service_name] = service["is_enabled"]
+        return service["is_enabled"]
+    else:
+        logging.info(f"Service {service_name} not found in database.")
+        service_cache[service_name] = True  # Default state is True
+        return True
 
 
