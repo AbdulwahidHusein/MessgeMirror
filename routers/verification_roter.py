@@ -21,19 +21,19 @@ bot = Bot(Config.VERIFICATION_BOT_TOKEN)
 
 @router.post("/verification-bot")
 async def webhook(webhook_data: TelegramWebhook) -> Dict[str, str]:
-
     try:
         # Handle group messages
         if is_group_message(webhook_data):
             verifier = VerificationBot(bot, webhook_data)
             if webhook_data.message.get("text"):
                 await verifier.handle_verification()
-        
+         
         # Handle private messages
         elif is_private_message(webhook_data):
             user = webhook_data.message['from']
             if 'username' in user:
                 username = user['username']
+                print(username)
                 if is_admin(username):
                     vbot = ManagementBot(bot, webhook_data) 
                     await vbot.handle_message()  

@@ -280,7 +280,7 @@ def delete_old_message_pairs(before_days, from_group_id=None):
     matching_documents_count = message_pair_collection.count_documents(query)
     
     if matching_documents_count == 0:
-        print("No matching documents found.")
+        # print("No matching documents found.")
         return 0
     
     # Perform the deletion and get the result

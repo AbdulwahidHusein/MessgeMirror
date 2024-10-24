@@ -85,7 +85,7 @@ def get_settlement_request_model(message: str) -> SettlementRequest:
     req.bank_name = get_bank_name_from_request(message)
     req.merchant_name = get_merchant_name_from_request(message)
     
-    print(req)
+    # print(req)
     
     return req
 

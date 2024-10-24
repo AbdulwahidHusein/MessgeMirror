@@ -81,4 +81,4 @@ resp = client.chat.completions.create(
     response_model=SettlementBatch,
 )
 
-print(resp.model_dump_json(indent=2))
+# print(resp.model_dump_json(indent=2))
