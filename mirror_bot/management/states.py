@@ -12,3 +12,5 @@ WAITING_FOR_REMOVE_whitelist_USER = "waiting_for_remove_whitelist_user"
 WAITING_FOR_REMOVE_whitelist_CONFIRM = "waiting_for_remove_whitelist_confirm"
 
 WAITING_DELETE_OLD_MESSAGES_NUM_OF_DAYS = "waiting_for_delete_old_messages_num_of_days"
+WAITING_FOR_GROUP_DELETE_CONFIRM="waiting for group delete select"
+WAITING_DELETE_OLD_MESSAGES_CONFIRM="waiting WAITING_DELETE_OLD_MESSAGES_CONFIRM"
