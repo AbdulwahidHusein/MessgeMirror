@@ -6,7 +6,7 @@ import logging
 
 MONGO_URL = Config.MONGO_URL
 client = MongoClient(MONGO_URL)
-db = client['messagemerror']
+db = client['MirrorBot']
 
 # Collections
 group_pair_collection = db['GroupPair']
@@ -14,7 +14,6 @@ message_pair_collection = db['MessagePair']
 whitelist_collection = db['Whitelist']
 session_collection = db['Session']
 member_ship_collection = db['MemberShip']
-
 
 config_collection = db['Config']
 

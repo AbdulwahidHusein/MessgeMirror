@@ -11,7 +11,6 @@ from models import TelegramWebhook
 from ..database import (
      group_pairs_dao, group_pairs_dao, membership_dao, session_management_dao, whitelist_dao
 )
- 
 
 
 class ManagementBot:

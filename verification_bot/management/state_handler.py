@@ -14,6 +14,7 @@ class StateHandler:
         self.update_message = webhook_data.message
         self.from_id = self.update_message['from']['id']
         self.user_session = session_management_dao.get_sessions_by_user_id(self.from_id)
+        
 
     async def handle_messages(self):
         session_name = self.user_session["session_name"]

@@ -1,6 +1,10 @@
-# Message Forwarder Telegram Bot
+# This reposittory Contains Two main Projects 
 
-This repository contains a Message Forwarder Telegram bot built using FastAPI. The bot allows administrators to create pairs of Telegram groups, enabling seamless message forwarding between them.
+
+
+# Message Forwarder and Settlment Telegram Bot
+
+This Project contains a Message Forwarder Telegram bot built using FastAPI. The bot allows administrators to create pairs of Telegram groups, enabling seamless message forwarding between them.
 
 ## Features
 
@@ -65,5 +69,12 @@ Once the bot is running, you can interact with it via Telegram. Use the followin
 - **Remove From whitelist**: Remove a user from the whitelist.
 - **Get whitelist** : Get list of whitelisted users.
 -  **Settings** : Get Settings
+- ## under settigns
+- **enable mirroring** : Enables mirroring
+- **Disable mirroring**: Disables mirroring
+- **Get Admins**: Get List of Admins
+- **Delete Old Messages** : Deletes old messages saved to the database. This is useful for cleaning up the database since messages in the database are only used if there is a reply to them. This allows us to easily refer back to the original message. However, as time passes, a message becomes less likely to receive a reply, making it more suitable for deletion.
 
+
+# Settlment Verification Bot
 

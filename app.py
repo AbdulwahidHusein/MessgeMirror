@@ -9,7 +9,7 @@ import logging
 from telegram import Bot
 from fastapi.responses import JSONResponse
 
-load_dotenv()
+load_dotenv(override=True)
 
 # Start memory tracking
 tracemalloc.start()
@@ -21,7 +21,6 @@ logger = logging.getLogger(__name__)
 # Lifespan function (setup and teardown)
 async def lifespan(app: FastAPI):
     try: 
-        
         mirror_bot = Bot(token=Config.MIRROR_BOT_TOKEN)
         await mirror_bot.set_webhook(url=Config.MIRROR_WEB_HOOK_URI, secret_token=Config.WEBHOOK_SECRET_TOKEN)
 
@@ -31,9 +30,9 @@ async def lifespan(app: FastAPI):
         logger.info("Webhooks set up successfully.")
     except Exception as e:
         logger.error(f"Failed to set up webhooks: {e}") 
-        raise e
-    yield 
-
+        raise e 
+    yield  
+          
     logger.info("Shutting down the app...")
 
 app = FastAPI(lifespan=lifespan)
@@ -51,7 +50,6 @@ app.add_middleware(
 app.include_router(admin.router)
 app.include_router(mirror_router.router)
 app.include_router(verification_roter.router)
-
 
 
 @app.middleware("http")
@@ -85,10 +83,13 @@ def log_memory_usage():
     logger.info("[Top 10 Memory Usage]")
     for stat in top_stats[:10]:
         logger.info(stat)
-
-if __name__ == "__main__":
-    import uvicorn
+ 
+ 
+if __name__ == "__main__": 
+    import uvicorn 
     try:
         uvicorn.run(app, host=Config.APP_HOST, port=Config.APP_PORT)
     except Exception as e:
         logger.error(f"Error occurred while running the app: {e}")
+    finally:
+        log_memory_usage()

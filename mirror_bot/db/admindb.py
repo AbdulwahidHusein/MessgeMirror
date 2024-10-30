@@ -6,7 +6,7 @@ from config import Config
 
 
 client = MongoClient(Config.MONGO_URL)
-db = client['admin_database']
+db = client['MirrorBot']
 admins_collection = db['adminlist']
 
 def add_username_to_admin_list(username): 
