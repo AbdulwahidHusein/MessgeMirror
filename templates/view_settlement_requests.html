@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View and Filter Settlement Requests</title>
+    <style>
+        /* Basic styling for the table and form */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+            padding: 8px;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        label, input {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>View and Filter Settlement Requests</h1>
+    
+    <form action="/filter-settlement-requests" method="post">
+        <label for="groupa_id">Group A ID:</label>
+        <input type="number" name="groupa_id" id="groupa_id">
+        
+        <label for="groupb_id">Group B ID:</label>
+        <input type="number" name="groupb_id" id="groupb_id">
+        
+        <label for="status">Status:</label>
+        <input type="text" name="status" id="status">
+        
+        <label for="index_on_groupa">Index on Group A:</label>
+        <input type="number" name="index_on_groupa" id="index_on_groupa">
+        
+        <label for="created_at">Created After:</label>
+        <input type="date" name="created_at" id="created_at">
+        
+        <label for="request_date">Request Date After:</label>
+        <input type="date" name="request_date" id="request_date">
+        
+        <label for="issuer_id">Issuer ID:</label>
+        <input type="number" name="issuer_id" id="issuer_id">
+        
+        <button type="submit">Filter</button>
+    </form>
+    
+    {% if results %}
+        <table>
+            <tr>
+                <th>Group A ID</th>
+                <th>Group B ID</th>
+                <th>Status</th>
+                <th>Index on Group A</th>
+                <th>Created At</th>
+                <th>Request Date</th>
+                <th>Issuer ID</th>
+            </tr>
+            {% for report in results %}
+                <tr>
+                    <td>{{ report["groupa_id"] }}</td>
+                    <td>{{ report["groupb_id"] }}</td>
+                    <td>{{ report["status"] }}</td>
+                    <td>{{ report["index_on_groupa"] }}</td>
+                    <td>{{ report["created_at"] }}</td>
+                    <td>{{ report["request_date"] }}</td>
+                    <td>{{ report["issuer_id"] }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>No results found.</p>
+    {% endif %}
+</body>
+</html>
