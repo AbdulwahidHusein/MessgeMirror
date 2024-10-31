@@ -31,20 +31,28 @@ This project includes a Telegram bot built with FastAPI, designed to forward mes
 
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/your-username/your-repo-name.git
-   cd your-repo-name
+   git clone https://github.com/AbdulwahidHusein/MessgeMirror.git
+   cd MessgeMirror
    ```
+
+
+2. **Create a Virtual Environment**:
+   - Run `python -m venv venv` to create a virtual environment.
+   - Activate it:
+     - On macOS/Linux: `source venv/bin/activate`
+     - On Windows: `venv\Scripts\activate`
 
 2. **Install Dependencies**:
-   Install the required dependencies using `pip`:
-   ```bash
-   pip install -r requirements.txt
-   ```
+   - Run `pip install -r requirements.txt` to install all required packages.
 
-3. **Set Up Environment Variables**:
-   Create a `.env` file based on `.env.example` in the repository. Fill in necessary variables like the Telegram bot token and database configurations.
+3. **Configure Environment Variables**:
+   - Create a `.env` file by copying `.env.example` in the repository.
+   - Fill in required values, such as the Telegram bot token and database configurations.
 
-4. **Run the Application**:
+4. **Start the FastAPI Server**:
+   - Run `uvicorn app:app --reload` to start the server with hot-reloading enabled.
+
+5. **Run the Application**:
    You have two options to run the application:
    
    - **Using Uvicorn**:
@@ -54,7 +62,7 @@ This project includes a Telegram bot built with FastAPI, designed to forward mes
    - **Using Docker (optional)**:
      Run the bot in a Docker container with:
      ```bash
-     docker run -d -p 8000:8000 --env-file .env your-image-name
+     docker run -d -p 8000:8000 --env-file .env abdusdocker/message_mirror
      ```
 
 ### Usage
@@ -79,6 +87,8 @@ After starting the bot, you can manage group pairs and user whitelisting through
 
 This bot is designed for settlement verification across groups. It verifies settlement requests sent between paired groups (Group A and Group B) to ensure consistency.
 
+## How to setup 
+Follow similar procedure as the mirror bot for setup
 ### Functionality
 
 The bot checks that a settlement request in Group B matches an existing request in Group A. Based on this verification, the bot replies accordingly:
