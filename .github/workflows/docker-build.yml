@@ -27,9 +27,9 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t abdusdocker/mirror-tg-bot:latest .
+          docker build -t abdusdocker/message_mirror:latest .
 
       - name: Push Docker image
         run: |
-          docker push abdusdocker/mirror-tg-bot:latest
+          docker push abdusdocker/message_mirror:latest
 
