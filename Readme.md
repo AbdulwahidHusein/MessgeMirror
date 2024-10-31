@@ -1,34 +1,33 @@
-# This reposittory Contains Two main Projects 
+# Telegram Bots Repository
 
+This repository contains two main projects: the **Message Forwarder Bot** and the **Settlement Verification Bot**.
 
+## Message Forwarder Bot
 
-# Message Forwarder and Settlment Telegram Bot
+This project includes a Telegram bot built with FastAPI, designed to forward messages between paired Telegram groups. The bot allows administrators to create, manage, and delete group pairs, facilitating seamless message forwarding.
 
-This Project contains a Message Forwarder Telegram bot built using FastAPI. The bot allows administrators to create pairs of Telegram groups, enabling seamless message forwarding between them.
+### Features
 
-## Features
+- **Pairing Groups**: Administrators can set up pairs of groups for message forwarding.
+- **Deleting Pairs**: Remove group pairs when they are no longer needed.
+- **Viewing Pairs**: See a list of existing group pairs to manage forwarding settings easily.
+- **User Whitelisting**: Whitelist specific users to exclude their messages from being forwarded across group pairs.
+- **Removing Users from Whitelist**: Manage the whitelist to allow previously blocked users.
+- **Automatic Message Forwarding**: Forwards messages automatically from one group to its paired group.
 
-- **Pairing Groups**: Administrators can add pairs of groups for message forwarding.
-- **Deleting Pairs**: Easily remove group pairs when they are no longer needed.
-- **Viewing Pairs**: View existing group pairs to manage the forwarding settings effectively.
-- **User whitelisting**: whitelist users to prevent their message from sent across group pairs.
-- **Removing Users from whitelist**: Easily manage the whitelist and allow previously blocked users.
-- **Message Forwarding**: Automatically forward messages from one group to the paired group.
+### Technology Stack
 
-## Technology Stack
+- **FastAPI**: A modern, fast web framework for building APIs with Python 3.6+ using standard type hints.
+- **Telegram Webhook**: Handles incoming messages and updates from Telegram.
 
-This project utilizes:
-- **FastAPI**: A modern, fast web framework for building APIs with Python 3.6+ based on standard Python type hints.
-- **Telegram Webhook**: For handling incoming messages and updates from Telegram.
+### Getting Started
 
-## Getting Started
-
-### Prerequisites
+#### Prerequisites
 
 - Python 3.7+
 - Docker (optional)
 
-### Installation
+#### Installation
 
 1. **Clone the Repository**:
    ```bash
@@ -37,44 +36,67 @@ This project utilizes:
    ```
 
 2. **Install Dependencies**:
-   You can install the required dependencies using pip:
+   Install the required dependencies using `pip`:
    ```bash
    pip install -r requirements.txt
    ```
 
 3. **Set Up Environment Variables**:
-   Create a `.env` file based on the `.env.example` provided in the repository. Make sure to fill in the necessary variables, such as your Telegram bot token and database configuration.
+   Create a `.env` file based on `.env.example` in the repository. Fill in necessary variables like the Telegram bot token and database configurations.
 
 4. **Run the Application**:
    You have two options to run the application:
-
+   
    - **Using Uvicorn**:
      ```bash
      uvicorn main:app --host 0.0.0.0 --port 8000 --reload
      ```
    - **Using Docker (optional)**:
-     If you prefer to run the bot in a Docker container, use the following command:
+     Run the bot in a Docker container with:
      ```bash
      docker run -d -p 8000:8000 --env-file .env your-image-name
      ```
 
-## Usage
+### Usage
 
-Once the bot is running, you can interact with it via Telegram. Use the following commands to manage group pairs and user whitelisting:
+After starting the bot, you can manage group pairs and user whitelisting through the following commands:
 
-- **Add Pair**: Add a new pair of groups.
-- **Remove Pair**: Remove a group pair.
-- **Get Pairs**: List existing group pairs.
-- **Add to whitelist**: whitelist a user from sending messages.
-- **Remove From whitelist**: Remove a user from the whitelist.
-- **Get whitelist** : Get list of whitelisted users.
--  **Settings** : Get Settings
-- ## under settigns
-- **enable mirroring** : Enables mirroring
-- **Disable mirroring**: Disables mirroring
-- **Get Admins**: Get List of Admins
-- **Delete Old Messages** : Deletes old messages saved to the database. This is useful for cleaning up the database since messages in the database are only used if there is a reply to them. This allows us to easily refer back to the original message. However, as time passes, a message becomes less likely to receive a reply, making it more suitable for deletion.
+- **Add Pair**: Create a new group pair.
+- **Remove Pair**: Delete an existing group pair.
+- **Get Pairs**: View current group pairs.
+- **Add to Whitelist**: Exclude a user from message forwarding.
+- **Remove from Whitelist**: Remove a user from the whitelist.
+- **Get Whitelist**: View all whitelisted users.
 
+#### Settings Commands
 
-# Settlment Verification Bot
+- **Enable Mirroring**: Enables mirroring of messages across pairs.
+- **Disable Mirroring**: Disables message mirroring.
+- **Get Admins**: Lists bot administrators.
+- **Delete Old Messages**: Deletes old messages from the database, cleaning up unreferenced data over time.
+
+## Settlement Verification Bot
+
+This bot is designed for settlement verification across groups. It verifies settlement requests sent between paired groups (Group A and Group B) to ensure consistency.
+
+### Functionality
+
+The bot checks that a settlement request in Group B matches an existing request in Group A. Based on this verification, the bot replies accordingly:
+
+- **Verified**: The request is confirmed as matching.
+- **Already Verified**: The request exists but has already been confirmed.
+- **Not Confirmed**: The request exists, but the sender in Group A is not whitelisted.
+- **Not Verified**: No matching request found in Group A.
+
+### Management Commands
+
+The bot provides a set of commands for management:
+
+- **Add Group Pair**: Adds a new group pair. The bot lists the groups it is a member of for easy selection.
+- **Remove Group Pair**: Deletes an existing group pair.
+- **Get Group Pairs**: Lists current group pairs.
+- **Add User to Whitelist**: Adds a user to the whitelist.
+- **Remove User from Whitelist**: Removes a user from the whitelist.
+- **Check Whitelisted Users**: Lists whitelisted users.
+- **Settings**: Access bot settings and configuration options.
 
