@@ -25,16 +25,17 @@ async def lifespan(app: FastAPI):
 
         await mirror_bot.set_webhook(url=Config.MIRROR_WEB_HOOK_URI, secret_token=Config.WEBHOOK_SECRET_TOKEN)
 
-        verification_bot = Bot(token=Config.VERIFICATION_BOT_TOKEN)
-        await verification_bot.set_webhook(url=Config.VERIFICATION_WEBHOOK_URI, secret_token=Config.WEBHOOK_SECRET_TOKEN)
-   
-        logger.info("Webhooks set up successfully.") 
-    except Exception as e:
-        logger.error(f"Failed to set up webhooks: {e}") 
-        
-    yield  
+    #     verification_bot = Bot(token=Config.VERIFICATION_BOT_TOKEN)
+    #     await verification_bot.set_webhook(url=Config.VERIFICATION_WEBHOOK_URI, secret_token=Config.WEBHOOK_SECRET_TOKEN)
+     
+    #     logger.info("Webhooks set up successfully.")  
+    # except Exception as e:
+    #     logger.error(f"Failed to set up webhooks: {e}") 
+    #     
+    # yield  
           
-    logger.info("Shutting down the app...")
+    # logger.info("Shutting down the app...")
+    yield
     # yield
 
 app = FastAPI(lifespan=lifespan)
