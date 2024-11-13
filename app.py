@@ -20,22 +20,23 @@ logger = logging.getLogger(__name__)
 
 # Lifespan function (setup and teardown)
 async def lifespan(app: FastAPI):
-    # try: 
-    #     mirror_bot = Bot(token=Config.MIRROR_BOT_TOKEN )
+    try: 
+        mirror_bot = Bot(token=Config.MIRROR_BOT_TOKEN )
 
-    #     await mirror_bot.set_webhook(url=Config.MIRROR_WEB_HOOK_URI, secret_token=Config.WEBHOOK_SECRET_TOKEN)
+        await mirror_bot.set_webhook(url=Config.MIRROR_WEB_HOOK_URI, secret_token=Config.WEBHOOK_SECRET_TOKEN)
 
     #     verification_bot = Bot(token=Config.VERIFICATION_BOT_TOKEN)
     #     await verification_bot.set_webhook(url=Config.VERIFICATION_WEBHOOK_URI, secret_token=Config.WEBHOOK_SECRET_TOKEN)
-   
-    #     logger.info("Webhooks set up successfully.") 
+     
+    #     logger.info("Webhooks set up successfully.")  
     # except Exception as e:
     #     logger.error(f"Failed to set up webhooks: {e}") 
-    #     raise e 
+    #     
     # yield  
           
     # logger.info("Shutting down the app...")
     yield
+    # yield
 
 app = FastAPI(lifespan=lifespan)
 
