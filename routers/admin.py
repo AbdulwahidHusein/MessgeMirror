@@ -9,7 +9,6 @@ from verification_bot.database.admin_dao import (
     add_username_to_admin_list as add_verification_bot_admin,
     remove_from_admin_list as remove_verification_bot_admin
 )
-
 router = APIRouter()
 
 # Mirror Bot Add Admin Form
