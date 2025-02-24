@@ -14,7 +14,7 @@ async def handle_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     keyboards = create_fixed_keyboard(commands)
 
-    await update.message.reply_text(f"Welcome {update.effective_user.mention_html()}!", reply_markup=keyboards)
+    await update.message.reply_text(f"Welcome {update.effective_user.name}!", reply_markup=keyboards)
 
 def register(application : Application):
     application.add_handler(CommandHandler("start", handle_start))
