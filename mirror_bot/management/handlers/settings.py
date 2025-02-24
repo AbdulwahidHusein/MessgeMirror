@@ -9,7 +9,7 @@ async def handle_settings(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_admin(update.effective_user.username):
         await update.message.reply_text("You are not authorized to access settings.")
         return
-        
+    
     buttons = [
         [InlineKeyboardButton(text="Get Admins", callback_data="get_admins")],
         [InlineKeyboardButton(text="Add Admin", callback_data="add_admin")],
@@ -112,9 +112,11 @@ async def handle_remove_admin(update: Update, context: ContextTypes.DEFAULT_TYPE
         buttons = []
         for username in admin_list:
             if username != update.effective_user.username:
+                callback_data = f"remove_admin_confirm:{username}"
+                print(f"Creating button with callback_data: {callback_data}")  # Debug log
                 buttons.append([InlineKeyboardButton(
                     text=f"@{username}",
-                    callback_data=f"remove_admin_confirm:{username}"
+                    callback_data=callback_data
                 )])
         
         if not buttons:
@@ -143,6 +145,8 @@ async def handle_remove_admin_confirm(update: Update, context: ContextTypes.DEFA
     query = update.callback_query
     await query.answer()
     
+    print(f"Received callback data: {query.data}")  # Debug log
+    
     if not is_admin(update.effective_user.username):
         await context.bot.send_message(
             chat_id=update.effective_user.id,
@@ -152,6 +156,7 @@ async def handle_remove_admin_confirm(update: Update, context: ContextTypes.DEFA
         
     try:
         admin_to_remove = query.data.split(":")[1].strip()
+        print(f"Attempting to remove admin: {admin_to_remove}")  # Debug log
         
         if admin_to_remove == update.effective_user.username:
             await context.bot.send_message(
@@ -175,6 +180,7 @@ async def handle_remove_admin_confirm(update: Update, context: ContextTypes.DEFA
             chat_id=update.effective_user.id,
             text=f"Error removing admin: {str(e)}"
         )
+        print(f"Error in handle_remove_admin_confirm: {str(e)}")  # Debug log
     
     try:
         await query.message.delete()
@@ -321,7 +327,7 @@ def register(application: Application):
         states={
             WAITING_FOR_NEW_ADMIN_USERNAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_new_admin_username)],
         },
-        fallbacks=[],
+        fallbacks=[CommandHandler("exit", lambda u, c: ConversationHandler.END)],
         allow_reentry=True,
         per_message=True
     ))
@@ -330,9 +336,11 @@ def register(application: Application):
     application.add_handler(ConversationHandler(
         entry_points=[CallbackQueryHandler(handle_remove_admin, pattern=r"^remove_admin$")],
         states={
-            WAITING_FOR_ADMIN_REMOVE_CONFIRM: [CallbackQueryHandler(handle_remove_admin_confirm, pattern=r"^remove_admin_confirm:")],
+            WAITING_FOR_ADMIN_REMOVE_CONFIRM: [
+                CallbackQueryHandler(handle_remove_admin_confirm, pattern=r"^remove_admin_confirm:[^:]+$")
+            ],
         },
-        fallbacks=[],
+        fallbacks=[CommandHandler("exit", lambda u, c: ConversationHandler.END)],
         allow_reentry=True,
         per_message=True
     ))
@@ -344,7 +352,7 @@ def register(application: Application):
             WAITING_DELETE_OLD_MESSAGES_NUM_OF_DAYS: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_delete_numof_days)],
             WAITING_DELETE_OLD_MESSAGES_CONFIRM: [CallbackQueryHandler(handle_delete_old_messages_confirm, pattern=r"^delete_messages:")],
         },
-        fallbacks=[],
+        fallbacks=[CommandHandler("exit", lambda u, c: ConversationHandler.END)],
         allow_reentry=True,
         per_message=True
     ))
