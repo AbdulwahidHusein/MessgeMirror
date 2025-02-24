@@ -5,99 +5,55 @@ from mirror_bot.db.database import delete_old_message_pairs, get_service_state, 
 from mirror_bot.management.states import *
 
 async def handle_settings(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handles the settings command."""
-        if not is_admin(update.effective_user.username):
-            await context.bot.send_message(chat_id=update.effective_user.id, text="You are not authorized to access settings.")
-            return
-            
-        buttons = [
-            [InlineKeyboardButton(text="Get Admins", callback_data="get_admins:null")],
-            [InlineKeyboardButton(text="Add Admin", callback_data="add_admin:null")],
-            [InlineKeyboardButton(text="Remove Admin", callback_data="remove_admin:null")],
-            [InlineKeyboardButton(text="Delete Old Messages to save storage", callback_data="delete_old_messages:null")],
-            [InlineKeyboardButton(text="Disable Mirroring", callback_data="disable_mirroring:null")],
-            [InlineKeyboardButton(text="Enable Mirroring", callback_data="enable_mirroring:null")],
-        ]
-        await context.bot.send_message(chat_id=update.effective_user.id, text="Settings", reply_markup=InlineKeyboardMarkup(buttons))
+    """Handles the settings command."""
+    if not is_admin(update.effective_user.username):
+        await update.message.reply_text("You are not authorized to access settings.")
+        return
+        
+    buttons = [
+        [InlineKeyboardButton(text="Get Admins", callback_data="get_admins")],
+        [InlineKeyboardButton(text="Add Admin", callback_data="add_admin")],
+        [InlineKeyboardButton(text="Remove Admin", callback_data="remove_admin")],
+        [InlineKeyboardButton(text="Delete Old Messages", callback_data="delete_old_messages")],
+        [InlineKeyboardButton(text="Disable Mirroring", callback_data="disable_mirroring")],
+        [InlineKeyboardButton(text="Enable Mirroring", callback_data="enable_mirroring")],
+    ]
+    await update.message.reply_text(
+        "Settings Menu:",
+        reply_markup=InlineKeyboardMarkup(buttons)
+    )
 
 async def handle_get_admins(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        try:
-            admin_list = load_admin_list()
-        except Exception as e:
-            await context.bot.send_message(chat_id=update.effective_user.id, text=f"Error loading admin list: {e}")
-            return
-
-        if not admin_list:
-            await context.bot.send_message(chat_id=update.effective_user.id, text="No admins found.")
-            return
-
-        buttons = [[InlineKeyboardButton(text=f"@{username}", callback_data=f"admin_actions:{username}")] for username in admin_list]
-        await context.bot.send_message(chat_id=update.effective_user.id, text="Admins:", reply_markup=InlineKeyboardMarkup(buttons))
-        
-        await context.bot.delete_message(chat_id=update.effective_user.id, message_id=update.message.message_id)
-
-
-
-async def handle_delete_old_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await context.bot.send_message(
-            chat_id=update._effective_user.id, 
-            text="This option is used to delete old messages in groups that are less likely to receive replies. This helps save storage and improve performance."
-        )
-    await context.bot.send_message(
-        chat_id=update._effective_user.id, 
-        text="Please specify the number of days before which old messages should be deleted (this will delete all messages before that day):"
-    )
-    return WAITING_DELETE_OLD_MESSAGES_NUM_OF_DAYS
-
-
-async def get_delete_numof_days(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    numofdays_str = update.message.text
-    if not numofdays_str.isdigit():
+    """Handles the get admins button click."""
+    query = update.callback_query
+    await query.answer()
+    
+    if not is_admin(update.effective_user.username):
         await context.bot.send_message(
-            chat_id=update._effective_user.id, 
-            text="Please specify the number of days before which old messages should be deleted (this will delete all messages before that day):"
+            chat_id=update.effective_user.id,
+            text="You are not authorized to view admins."
         )
-        return WAITING_DELETE_OLD_MESSAGES_NUM_OF_DAYS
-    numofdays_int = int(numofdays_str)
-    buttons = [[InlineKeyboardButton(text="Yes", callback_data=f"delete_messages:{numofdays_int}"), InlineKeyboardButton(text="No", callback_data="cancel_delete_old_messages:no")]]
-    await context.bot.send_message(chat_id=update.effective_user.id, text=f"Are you sure you want to delete all {numofdays_int} days old messages?", reply_markup=InlineKeyboardMarkup(buttons))
-
-    return WAITING_DELETE_OLD_MESSAGES_CONFIRM  
- 
-
-async def handle_delete_old_messages_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    try:
-        num_of_days = int(update.callback_query.data.split(":")[1])
-    except (ValueError, IndexError):
-        await update.callback_query.answer(text="Invalid input. Please enter a valid number of days.", show_alert=True)
         return
-    success = delete_old_message_pairs(num_of_days)
-    if success:
-        await update.callback_query.answer(text=f"Successfully deleted {num_of_days} days old messages.", show_alert=True)
-    else:
-        await update.callback_query.answer(text="No matching messages Found.", show_alert=True)
-    await update.callback_query.delete_message()
-    return ConversationHandler.END
 
-async def handle_disable_mirroring(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        if get_service_state("MIRRORING_STATUS"):
-            success = add_or_update_service("MIRRORING_STATUS", False)
-            if success:
-                await context.bot.send_message(chat_id=update.effective_user.id, text="Mirroring has been disabled successfully.")
-            else:
-                await context.bot.send_message(chat_id=update.effective_user.id, text="Failed to disable mirroring. Please try again later.")
-        else:
-            await context.bot.send_message(chat_id=update.effective_user.id, text="Mirroring is already disabled.")
-  
-async def handle_enable_mirroring(update: Update, context: ContextTypes.DEFAULT_TYPE): 
-    if not get_service_state("MIRRORING_STATUS"):
-        success = add_or_update_service( "MIRRORING_STATUS", True)
-        if success:
-            await context.bot.send_message(chat_id=update.effective_user.id, text="Mirroring has been enabled successfully.")
-        else:
-            await context.bot.send_message(chat_id=update.effective_user.id, text="Failed to enable mirroring. Please try again later.")
-    else:
-        await context.bot.send_message(chat_id=update.effective_user.id, text="Mirroring is already enabled.") 
+    try:
+        admin_list = load_admin_list()
+        if not admin_list:
+            await context.bot.send_message(
+                chat_id=update.effective_user.id,
+                text="No admins found."
+            )
+            return
+
+        admin_text = "Current Admins:\n" + "\n".join([f"• @{admin}" for admin in admin_list])
+        await context.bot.send_message(
+            chat_id=update.effective_user.id,
+            text=admin_text
+        )
+    except Exception as e:
+        await context.bot.send_message(
+            chat_id=update.effective_user.id,
+            text=f"Error loading admin list: {str(e)}"
+        )
 
 async def handle_add_admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handles the add admin button click."""
@@ -105,7 +61,10 @@ async def handle_add_admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
     
     if not is_admin(update.effective_user.username):
-        await context.bot.send_message(chat_id=update.effective_user.id, text="You are not authorized to add admins.")
+        await context.bot.send_message(
+            chat_id=update.effective_user.id,
+            text="You are not authorized to add admins."
+        )
         return ConversationHandler.END
         
     await context.bot.send_message(
@@ -119,23 +78,14 @@ async def handle_new_admin_username(update: Update, context: ContextTypes.DEFAUL
     new_admin = update.message.text.strip()
     
     if not is_admin(update.effective_user.username):
-        await context.bot.send_message(chat_id=update.effective_user.id, text="You are not authorized to add admins.")
+        await update.message.reply_text("You are not authorized to add admins.")
         return ConversationHandler.END
         
     if new_admin.startswith('@'):
         new_admin = new_admin[1:]
         
-    if is_admin(new_admin):
-        await context.bot.send_message(
-            chat_id=update.effective_user.id,
-            text=f"@{new_admin} is already an admin."
-        )
-    else:
-        result = add_username_to_admin_list(new_admin)
-        await context.bot.send_message(
-            chat_id=update.effective_user.id,
-            text=result
-        )
+    result = add_username_to_admin_list(new_admin)
+    await update.message.reply_text(result)
     return ConversationHandler.END
 
 async def handle_remove_admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -144,7 +94,10 @@ async def handle_remove_admin(update: Update, context: ContextTypes.DEFAULT_TYPE
     await query.answer()
     
     if not is_admin(update.effective_user.username):
-        await context.bot.send_message(chat_id=update.effective_user.id, text="You are not authorized to remove admins.")
+        await context.bot.send_message(
+            chat_id=update.effective_user.id,
+            text="You are not authorized to remove admins."
+        )
         return ConversationHandler.END
         
     try:
@@ -156,8 +109,13 @@ async def handle_remove_admin(update: Update, context: ContextTypes.DEFAULT_TYPE
             )
             return ConversationHandler.END
             
-        buttons = [[InlineKeyboardButton(text=f"@{username}", callback_data=f"remove_admin_confirm:{username}")] 
-                  for username in admin_list if username != update.effective_user.username]
+        buttons = []
+        for username in admin_list:
+            if username != update.effective_user.username:
+                buttons.append([InlineKeyboardButton(
+                    text=f"@{username}",
+                    callback_data=f"remove_admin_confirm:{username}"
+                )])
         
         if not buttons:
             await context.bot.send_message(
@@ -176,7 +134,7 @@ async def handle_remove_admin(update: Update, context: ContextTypes.DEFAULT_TYPE
     except Exception as e:
         await context.bot.send_message(
             chat_id=update.effective_user.id,
-            text=f"Error loading admin list: {e}"
+            text=f"Error loading admin list: {str(e)}"
         )
         return ConversationHandler.END
 
@@ -186,14 +144,15 @@ async def handle_remove_admin_confirm(update: Update, context: ContextTypes.DEFA
     await query.answer()
     
     if not is_admin(update.effective_user.username):
-        await context.bot.send_message(chat_id=update.effective_user.id, text="You are not authorized to remove admins.")
+        await context.bot.send_message(
+            chat_id=update.effective_user.id,
+            text="You are not authorized to remove admins."
+        )
         return ConversationHandler.END
         
     try:
-        # Extract username from callback data
         admin_to_remove = query.data.split(":")[1].strip()
         
-        # Check if trying to remove self
         if admin_to_remove == update.effective_user.username:
             await context.bot.send_message(
                 chat_id=update.effective_user.id,
@@ -201,7 +160,6 @@ async def handle_remove_admin_confirm(update: Update, context: ContextTypes.DEFA
             )
             return ConversationHandler.END
             
-        # Try to remove the admin
         if remove_from_admin_list(admin_to_remove):
             await context.bot.send_message(
                 chat_id=update.effective_user.id,
@@ -210,10 +168,9 @@ async def handle_remove_admin_confirm(update: Update, context: ContextTypes.DEFA
         else:
             await context.bot.send_message(
                 chat_id=update.effective_user.id,
-                text=f"Failed to remove @{admin_to_remove} from admin list. They might already be removed."
+                text=f"Failed to remove @{admin_to_remove}. They might already be removed."
             )
     except Exception as e:
-        print(f"Error in remove_admin_confirm: {str(e)}")  # Debug log
         await context.bot.send_message(
             chat_id=update.effective_user.id,
             text=f"Error removing admin: {str(e)}"
@@ -226,13 +183,118 @@ async def handle_remove_admin_confirm(update: Update, context: ContextTypes.DEFA
         
     return ConversationHandler.END
 
-def register(application: Application):
-    application.add_handler(CommandHandler("settings", handle_settings))
-    application.add_handler(CallbackQueryHandler(handle_get_admins, pattern="get_admins"))
+async def handle_delete_old_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handles the delete old messages button click."""
+    query = update.callback_query
+    await query.answer()
     
-    # Add admin conversation handler
+    if not is_admin(update.effective_user.username):
+        await context.bot.send_message(
+            chat_id=update.effective_user.id,
+            text="You are not authorized to delete messages."
+        )
+        return ConversationHandler.END
+        
+    await context.bot.send_message(
+        chat_id=update.effective_user.id,
+        text="This option will delete old messages to save storage space.\n\nPlease enter the number of days (messages older than this will be deleted):"
+    )
+    return WAITING_DELETE_OLD_MESSAGES_NUM_OF_DAYS
+
+async def handle_delete_old_messages_confirm(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handles the delete old messages confirmation."""
+    query = update.callback_query
+    await query.answer()
+    
+    try:
+        days = int(query.data.split(":")[1])
+        if delete_old_message_pairs(days):
+            await context.bot.send_message(
+                chat_id=update.effective_user.id,
+                text=f"Successfully deleted messages older than {days} days."
+            )
+        else:
+            await context.bot.send_message(
+                chat_id=update.effective_user.id,
+                text="No messages found to delete."
+            )
+    except Exception as e:
+        await context.bot.send_message(
+            chat_id=update.effective_user.id,
+            text=f"Error deleting messages: {str(e)}"
+        )
+    
+    return ConversationHandler.END
+
+async def handle_disable_mirroring(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handles the disable mirroring button click."""
+    query = update.callback_query
+    await query.answer()
+    
+    if not is_admin(update.effective_user.username):
+        await context.bot.send_message(
+            chat_id=update.effective_user.id,
+            text="You are not authorized to change mirroring settings."
+        )
+        return
+        
+    if get_service_state("MIRRORING_STATUS"):
+        if add_or_update_service("MIRRORING_STATUS", False):
+            await context.bot.send_message(
+                chat_id=update.effective_user.id,
+                text="Message mirroring has been disabled."
+            )
+        else:
+            await context.bot.send_message(
+                chat_id=update.effective_user.id,
+                text="Failed to disable mirroring. Please try again."
+            )
+    else:
+        await context.bot.send_message(
+            chat_id=update.effective_user.id,
+            text="Message mirroring is already disabled."
+        )
+
+async def handle_enable_mirroring(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handles the enable mirroring button click."""
+    query = update.callback_query
+    await query.answer()
+    
+    if not is_admin(update.effective_user.username):
+        await context.bot.send_message(
+            chat_id=update.effective_user.id,
+            text="You are not authorized to change mirroring settings."
+        )
+        return
+        
+    if not get_service_state("MIRRORING_STATUS"):
+        if add_or_update_service("MIRRORING_STATUS", True):
+            await context.bot.send_message(
+                chat_id=update.effective_user.id,
+                text="Message mirroring has been enabled."
+            )
+        else:
+            await context.bot.send_message(
+                chat_id=update.effective_user.id,
+                text="Failed to enable mirroring. Please try again."
+            )
+    else:
+        await context.bot.send_message(
+            chat_id=update.effective_user.id,
+            text="Message mirroring is already enabled."
+        )
+
+def register(application: Application):
+    """Registers all settings-related handlers."""
+    # Main settings command
+    application.add_handler(CommandHandler("settings", handle_settings))
+    
+    # Admin management handlers
+    application.add_handler(CallbackQueryHandler(handle_get_admins, pattern=r"^get_admins$"))
+    
+    # Add admin conversation
     application.add_handler(ConversationHandler(
-        entry_points=[CallbackQueryHandler(handle_add_admin, pattern="add_admin")],
+        entry_points=[CallbackQueryHandler(handle_add_admin, pattern=r"^add_admin$")],
         states={
             WAITING_FOR_NEW_ADMIN_USERNAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_new_admin_username)],
         },
@@ -241,28 +303,29 @@ def register(application: Application):
         per_message=True
     ))
     
-    # Remove admin conversation handler
+    # Remove admin conversation
     application.add_handler(ConversationHandler(
-        entry_points=[CallbackQueryHandler(handle_remove_admin, pattern="remove_admin")],
+        entry_points=[CallbackQueryHandler(handle_remove_admin, pattern=r"^remove_admin$")],
         states={
-            WAITING_FOR_ADMIN_REMOVE_CONFIRM: [
-                CallbackQueryHandler(handle_remove_admin_confirm, pattern=r"remove_admin_confirm:.*")
-            ],
+            WAITING_FOR_ADMIN_REMOVE_CONFIRM: [CallbackQueryHandler(handle_remove_admin_confirm, pattern=r"^remove_admin_confirm:")],
         },
         fallbacks=[],
         allow_reentry=True,
         per_message=True
     ))
     
+    # Delete old messages conversation
     application.add_handler(ConversationHandler(
-        entry_points=[CallbackQueryHandler(handle_delete_old_messages, pattern="delete_old_messages")],
+        entry_points=[CallbackQueryHandler(handle_delete_old_messages, pattern=r"^delete_old_messages$")],
         states={
-            WAITING_DELETE_OLD_MESSAGES_NUM_OF_DAYS: [MessageHandler(filters.TEXT, get_delete_numof_days)],
-            WAITING_DELETE_OLD_MESSAGES_CONFIRM: [CallbackQueryHandler(handle_delete_old_messages_confirm, pattern="delete_messages")]
+            WAITING_DELETE_OLD_MESSAGES_NUM_OF_DAYS: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_delete_numof_days)],
+            WAITING_DELETE_OLD_MESSAGES_CONFIRM: [CallbackQueryHandler(handle_delete_old_messages_confirm, pattern=r"^delete_messages:")],
         },
         fallbacks=[],
+        allow_reentry=True,
         per_message=True
     ))
-
-    application.add_handler(CallbackQueryHandler(handle_disable_mirroring, pattern=r"^disable_mirroring"))
-    application.add_handler(CallbackQueryHandler(handle_enable_mirroring, pattern=r"^enable_mirroring"))
+    
+    # Mirroring control handlers
+    application.add_handler(CallbackQueryHandler(handle_disable_mirroring, pattern=r"^disable_mirroring$"))
+    application.add_handler(CallbackQueryHandler(handle_enable_mirroring, pattern=r"^enable_mirroring$"))
