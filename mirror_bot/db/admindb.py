@@ -12,9 +12,9 @@ admins_collection = db['adminlist']
 def add_username_to_admin_list(username): 
     if not is_admin(username):
         admins_collection.insert_one({'username': username})
-        return f"Username '{username}' added."
+        return f"@{username} has been successfully added as an admin."
     else:
-        return f"Username '{username}' already exists."
+        return f"@{username} is already an admin."
 
 def is_admin(username):
     return admins_collection.find_one({'username': username}) is not None

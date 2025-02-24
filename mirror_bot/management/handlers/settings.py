@@ -159,6 +159,13 @@ async def handle_remove_admin(update: Update, context: ContextTypes.DEFAULT_TYPE
         buttons = [[InlineKeyboardButton(text=f"@{username}", callback_data=f"remove_admin_confirm:{username}")] 
                   for username in admin_list if username != update.effective_user.username]
         
+        if not buttons:
+            await context.bot.send_message(
+                chat_id=update.effective_user.id,
+                text="No other admins to remove."
+            )
+            return ConversationHandler.END
+            
         await context.bot.send_message(
             chat_id=update.effective_user.id,
             text="Select an admin to remove:",
@@ -183,7 +190,18 @@ async def handle_remove_admin_confirm(update: Update, context: ContextTypes.DEFA
         return ConversationHandler.END
         
     try:
-        admin_to_remove = query.data.split(":")[1]
+        # Extract username from callback data
+        admin_to_remove = query.data.split(":")[1].strip()
+        
+        # Check if trying to remove self
+        if admin_to_remove == update.effective_user.username:
+            await context.bot.send_message(
+                chat_id=update.effective_user.id,
+                text="You cannot remove yourself as admin."
+            )
+            return ConversationHandler.END
+            
+        # Try to remove the admin
         if remove_from_admin_list(admin_to_remove):
             await context.bot.send_message(
                 chat_id=update.effective_user.id,
@@ -192,15 +210,20 @@ async def handle_remove_admin_confirm(update: Update, context: ContextTypes.DEFA
         else:
             await context.bot.send_message(
                 chat_id=update.effective_user.id,
-                text=f"Failed to remove @{admin_to_remove} from admin list."
+                text=f"Failed to remove @{admin_to_remove} from admin list. They might already be removed."
             )
     except Exception as e:
+        print(f"Error in remove_admin_confirm: {str(e)}")  # Debug log
         await context.bot.send_message(
             chat_id=update.effective_user.id,
-            text=f"Error removing admin: {e}"
+            text=f"Error removing admin: {str(e)}"
         )
     
-    await query.message.delete()
+    try:
+        await query.message.delete()
+    except Exception:
+        pass
+        
     return ConversationHandler.END
 
 def register(application: Application):
@@ -214,7 +237,8 @@ def register(application: Application):
             WAITING_FOR_NEW_ADMIN_USERNAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_new_admin_username)],
         },
         fallbacks=[],
-        allow_reentry=True
+        allow_reentry=True,
+        per_message=True
     ))
     
     # Remove admin conversation handler
@@ -224,7 +248,8 @@ def register(application: Application):
             WAITING_FOR_ADMIN_REMOVE_CONFIRM: [CallbackQueryHandler(handle_remove_admin_confirm, pattern="remove_admin_confirm")],
         },
         fallbacks=[],
-        allow_reentry=True
+        allow_reentry=True,
+        per_message=True
     ))
     
     application.add_handler(ConversationHandler(
@@ -234,6 +259,7 @@ def register(application: Application):
             WAITING_DELETE_OLD_MESSAGES_CONFIRM: [CallbackQueryHandler(handle_delete_old_messages_confirm, pattern="delete_messages")]
         },
         fallbacks=[],
+        per_message=True
     ))
 
     application.add_handler(CallbackQueryHandler(handle_disable_mirroring, pattern=r"^disable_mirroring"))
