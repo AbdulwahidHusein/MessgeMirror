@@ -245,7 +245,9 @@ def register(application: Application):
     application.add_handler(ConversationHandler(
         entry_points=[CallbackQueryHandler(handle_remove_admin, pattern="remove_admin")],
         states={
-            WAITING_FOR_ADMIN_REMOVE_CONFIRM: [CallbackQueryHandler(handle_remove_admin_confirm, pattern="remove_admin_confirm")],
+            WAITING_FOR_ADMIN_REMOVE_CONFIRM: [
+                CallbackQueryHandler(handle_remove_admin_confirm, pattern=r"remove_admin_confirm:.*")
+            ],
         },
         fallbacks=[],
         allow_reentry=True,
