@@ -3,7 +3,7 @@ import tracemalloc
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from routers import admin, mirror_router, verification_roter
+from routers import admin, mirror_router, verification_router
 from config import Config
 import logging
 from telegram import Bot
@@ -61,7 +61,7 @@ app.include_router(admin.router)
 if Config.MIRROR_ENABLED:
     app.include_router(mirror_router.router)
 if Config.VERIFICATION_ENABLED:
-    app.include_router(verification_roter.router)
+    app.include_router(verification_router.router)
 
 
 @app.middleware("http")
