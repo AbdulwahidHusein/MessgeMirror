@@ -315,48 +315,59 @@ async def get_delete_numof_days(update: Update, context: ContextTypes.DEFAULT_TY
 
 def register(application: Application):
     """Registers all settings-related handlers."""
-    # Main settings command
+    # Main settings command and simple callbacks
     application.add_handler(CommandHandler("settings", handle_settings))
-    
-    # Admin management handlers
     application.add_handler(CallbackQueryHandler(handle_get_admins, pattern=r"^get_admins$"))
-    
-    # Add admin conversation
-    application.add_handler(ConversationHandler(
-        entry_points=[CallbackQueryHandler(handle_add_admin, pattern=r"^add_admin$")],
-        states={
-            WAITING_FOR_NEW_ADMIN_USERNAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_new_admin_username)],
-        },
-        fallbacks=[CommandHandler("exit", lambda u, c: ConversationHandler.END)],
-        allow_reentry=True,
-        per_message=True
-    ))
-    
-    # Remove admin conversation
-    application.add_handler(ConversationHandler(
-        entry_points=[CallbackQueryHandler(handle_remove_admin, pattern=r"^remove_admin$")],
-        states={
-            WAITING_FOR_ADMIN_REMOVE_CONFIRM: [
-                CallbackQueryHandler(handle_remove_admin_confirm, pattern=r"^remove_admin_confirm:[^:]+$")
-            ],
-        },
-        fallbacks=[CommandHandler("exit", lambda u, c: ConversationHandler.END)],
-        allow_reentry=True,
-        per_message=True
-    ))
-    
-    # Delete old messages conversation
-    application.add_handler(ConversationHandler(
-        entry_points=[CallbackQueryHandler(handle_delete_old_messages, pattern=r"^delete_old_messages$")],
-        states={
-            WAITING_DELETE_OLD_MESSAGES_NUM_OF_DAYS: [MessageHandler(filters.TEXT & ~filters.COMMAND, get_delete_numof_days)],
-            WAITING_DELETE_OLD_MESSAGES_CONFIRM: [CallbackQueryHandler(handle_delete_old_messages_confirm, pattern=r"^delete_messages:")],
-        },
-        fallbacks=[CommandHandler("exit", lambda u, c: ConversationHandler.END)],
-        allow_reentry=True,
-        per_message=True
-    ))
-    
-    # Mirroring control handlers
     application.add_handler(CallbackQueryHandler(handle_disable_mirroring, pattern=r"^disable_mirroring$"))
     application.add_handler(CallbackQueryHandler(handle_enable_mirroring, pattern=r"^enable_mirroring$"))
+    
+    # Add admin conversation
+    application.add_handler(
+        ConversationHandler(
+            entry_points=[CallbackQueryHandler(handle_add_admin, pattern=r"^add_admin$")],
+            states={
+                WAITING_FOR_NEW_ADMIN_USERNAME: [
+                    MessageHandler(filters.TEXT & ~filters.COMMAND, handle_new_admin_username)
+                ],
+            },
+            fallbacks=[CommandHandler("exit", lambda u, c: ConversationHandler.END)],
+            allow_reentry=True,
+            per_chat=True,
+            per_user=True
+        )
+    )
+    
+    # Remove admin conversation
+    application.add_handler(
+        ConversationHandler(
+            entry_points=[CallbackQueryHandler(handle_remove_admin, pattern=r"^remove_admin$")],
+            states={
+                WAITING_FOR_ADMIN_REMOVE_CONFIRM: [
+                    CallbackQueryHandler(handle_remove_admin_confirm, pattern=r"^remove_admin_confirm:")
+                ],
+            },
+            fallbacks=[CommandHandler("exit", lambda u, c: ConversationHandler.END)],
+            allow_reentry=True,
+            per_chat=True,
+            per_user=True
+        )
+    )
+    
+    # Delete old messages conversation
+    application.add_handler(
+        ConversationHandler(
+            entry_points=[CallbackQueryHandler(handle_delete_old_messages, pattern=r"^delete_old_messages$")],
+            states={
+                WAITING_DELETE_OLD_MESSAGES_NUM_OF_DAYS: [
+                    MessageHandler(filters.TEXT & ~filters.COMMAND, get_delete_numof_days)
+                ],
+                WAITING_DELETE_OLD_MESSAGES_CONFIRM: [
+                    CallbackQueryHandler(handle_delete_old_messages_confirm, pattern=r"^delete_messages:")
+                ],
+            },
+            fallbacks=[CommandHandler("exit", lambda u, c: ConversationHandler.END)],
+            allow_reentry=True,
+            per_chat=True,
+            per_user=True
+        )
+    )
