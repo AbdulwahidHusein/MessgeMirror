@@ -11,6 +11,8 @@ from fastapi.responses import JSONResponse
 
 load_dotenv(override=True)
 
+
+
 # Start memory tracking
 tracemalloc.start()
 
@@ -21,21 +23,25 @@ logger = logging.getLogger(__name__)
 # Lifespan function (setup and teardown)
 async def lifespan(app: FastAPI):
     try: 
-        mirror_bot = Bot(token=Config.MIRROR_BOT_TOKEN )
+        mirror_enabled = os.getenv("MIRROR_ENABLED")
+        if mirror_enabled:
+            mirror_bot = Bot(token=Config.MIRROR_BOT_TOKEN )
 
-        await mirror_bot.set_webhook(url=Config.MIRROR_WEB_HOOK_URI, secret_token=Config.WEBHOOK_SECRET_TOKEN)
-
-    #     verification_bot = Bot(token=Config.VERIFICATION_BOT_TOKEN)
-    #     await verification_bot.set_webhook(url=Config.VERIFICATION_WEBHOOK_URI, secret_token=Config.WEBHOOK_SECRET_TOKEN)
+            await mirror_bot.set_webhook(url=Config.MIRROR_WEB_HOOK_URI, secret_token=Config.WEBHOOK_SECRET_TOKEN)
+        
+        verification_enabled = os.getenv("VERIFICATION_ENABLED")
+        if verification_enabled:
+            verification_bot = Bot(token=Config.VERIFICATION_BOT_TOKEN)
+            await verification_bot.set_webhook(url=Config.VERIFICATION_WEBHOOK_URI, secret_token=Config.WEBHOOK_SECRET_TOKEN)
      
-    #     logger.info("Webhooks set up successfully.")  
-    # except Exception as e:
-    #     logger.error(f"Failed to set up webhooks: {e}") 
-    #     
-    # yield  
+        logger.info("Webhooks set up successfully.")  
+    except Exception as e:
+        logger.error(f"Failed to set up webhooks: {e}") 
+        
+    logger.info("Shutting down the app...")
+    yield  
           
-    # logger.info("Shutting down the app...")
-    yield
+    # yield
     # yield
 
 app = FastAPI(lifespan=lifespan)
@@ -51,8 +57,11 @@ app.add_middleware(
 
 # Include routers
 app.include_router(admin.router)
-app.include_router(mirror_router.router)
-app.include_router(verification_roter.router)
+
+if Config.MIRROR_ENABLED:
+    app.include_router(mirror_router.router)
+if Config.VERIFICATION_ENABLED:
+    app.include_router(verification_roter.router)
 
 
 @app.middleware("http")

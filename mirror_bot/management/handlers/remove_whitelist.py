@@ -1,17 +1,11 @@
 from telegram import (
     InlineKeyboardButton, InlineKeyboardMarkup, Update,
-    ReplyKeyboardMarkup
 )
 from telegram.ext import ContextTypes,ConversationHandler, Application, CommandHandler, CallbackQueryHandler
-from models import TelegramWebhook
-from mirror_bot.db.admindb import load_admin_list
-from mirror_bot.db.database import (
-    get_group_pairs, get_whitelist, get_sessions_by_user_id,
-    update_session, delete_session, get_member_ship_groups
-)
+from mirror_bot.db.database import get_whitelist
+
 from mirror_bot.management.states import *
-from mirror_bot.db.database import is_whitelisted, delete_whitelist_entry
-from utils.helpers import normalize_username
+from mirror_bot.db.database import  delete_whitelist_entry
 
 async def handle_remove_from_whitelist(update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
     """Handles removing a user from the whitelist."""

@@ -17,20 +17,17 @@ from telegram import Update
 from telegram.ext import (ApplicationBuilder)
 
 
+if Config.MIRROR_ENABLED:
+    router = APIRouter()
 
-router = APIRouter()
-
-
- 
-
-bot_app = ( 
-    ApplicationBuilder()
-    .token(Config.MIRROR_BOT_TOKEN)
-    .write_timeout(40) 
-    .read_timeout(20)   
-    .connection_pool_size(100) 
-    .build() 
-)
+    bot_app = ( 
+        ApplicationBuilder()
+        .token(Config.MIRROR_BOT_TOKEN)
+        .write_timeout(40) 
+        .read_timeout(20)   
+        .connection_pool_size(100) 
+        .build() 
+    )
 
 
 
@@ -57,11 +54,15 @@ async def webhook(request: Request) -> Dict[str, str]:
         elif is_private_message(webhook_data) or webhook_data.callback_query:
             update_data = await request.json()
             update = Update.de_json(update_data, bot_app.bot)
-            register_handlers.register(bot_app)
-            await bot_app.initialize()
-            await bot_app.process_update(update)
+            user = webhook_data.message['from']
 
-            # user = webhook_data.message['from'] 
+            if is_admin(user['username']):
+                register_handlers.register(bot_app)
+                await bot_app.initialize()
+                await bot_app.process_update(update)
+            else:
+                await bot_app.bot.send_message(chat_id=user['id'], text="You are not authorized to use this bot")
+
             
             # if 'username' in user:
             #     username = user['username']

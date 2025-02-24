@@ -1,5 +1,5 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application, MessageHandler,CommandHandler
+from telegram.ext import Application,CommandHandler
 
 
 from telegram.ext import ContextTypes,ConversationHandler

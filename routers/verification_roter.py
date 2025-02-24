@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Request
 from telegram import Bot, Update
 from telegram.error import TelegramError
 
@@ -14,15 +14,17 @@ from verification_bot.verification.response import VerificationBot
 from telegram.ext import ApplicationBuilder
 from verification_bot.management.handlers import register_handlers
 
-router = APIRouter()
-bot_app = ( 
-    ApplicationBuilder()
-    .token(Config.VERIFICATION_BOT_TOKEN)
-    .write_timeout(40) 
-    .read_timeout(20)   
-    .connection_pool_size(100) 
-    .build() 
-)
+
+if Config.VERIFICATION_ENABLED:
+    router = APIRouter()
+    bot_app = ( 
+        ApplicationBuilder()
+        .token(Config.VERIFICATION_BOT_TOKEN)
+        .write_timeout(40) 
+        .read_timeout(20)   
+        .connection_pool_size(100) 
+        .build() 
+    )
 
 @router.post("/verification-bot")
 async def webhook(request: Request) -> Dict[str, str]:

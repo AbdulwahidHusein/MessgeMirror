@@ -1,14 +1,7 @@
-from telegram import (
-    InlineKeyboardButton, InlineKeyboardMarkup, Update,
-    ReplyKeyboardMarkup
-)
+from telegram import Update
+
 from telegram.ext import ContextTypes,ConversationHandler, Application, CommandHandler, MessageHandler, filters
-from models import TelegramWebhook
-from mirror_bot.db.admindb import load_admin_list
-from mirror_bot.db.database import (
-    get_group_pairs, get_whitelist, get_sessions_by_user_id,
-    update_session, delete_session, get_member_ship_groups
-)
+
 from mirror_bot.management.states import *
 from mirror_bot.db.database import is_whitelisted, create_whitelist_entry
 from utils.helpers import normalize_username
@@ -16,7 +9,7 @@ from utils.helpers import normalize_username
 
 async def handle_add_to_whitelist(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handles adding a user to the whitelist."""
-    await context.bot.send_message(chat_id=update.effective_user.id, text="Please forward a message from the user you wish to whitelist, or enter their username.")
+    await context.bot.send_message(chat_id=update.effective_user.id, text="Please forward a message from the user you wish to whitelist, or enter their username (without @).")
     
     return WAITING_FOR_whitelist_USER
 
