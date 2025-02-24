@@ -23,23 +23,37 @@ logger = logging.getLogger(__name__)
 # Lifespan function (setup and teardown)
 async def lifespan(app: FastAPI):
     try: 
-        mirror_enabled = os.getenv("MIRROR_ENABLED")
-        if mirror_enabled:
-            mirror_bot = Bot(token=Config.MIRROR_BOT_TOKEN )
-
-            await mirror_bot.set_webhook(url=Config.MIRROR_WEB_HOOK_URI, secret_token=Config.WEBHOOK_SECRET_TOKEN)
+        if Config.MIRROR_ENABLED:
+            # Initialize the mirror bot application
+            await mirror_router.bot_app.initialize()
+            await mirror_router.bot_app.bot.set_webhook(
+                url=Config.MIRROR_WEB_HOOK_URI, 
+                secret_token=Config.WEBHOOK_SECRET_TOKEN
+            )
         
-        verification_enabled = os.getenv("VERIFICATION_ENABLED")
-        if verification_enabled:
-            verification_bot = Bot(token=Config.VERIFICATION_BOT_TOKEN)
-            await verification_bot.set_webhook(url=Config.VERIFICATION_WEBHOOK_URI, secret_token=Config.WEBHOOK_SECRET_TOKEN)
+        if Config.VERIFICATION_ENABLED:
+            # Initialize the verification bot application
+            await verification_router.bot_app.initialize()
+            await verification_router.bot_app.bot.set_webhook(
+                url=Config.VERIFICATION_WEBHOOK_URI, 
+                secret_token=Config.WEBHOOK_SECRET_TOKEN
+            )
      
-        logger.info("Webhooks set up successfully.")  
+        logger.info("Bots initialized and webhooks set up successfully.")  
     except Exception as e:
-        logger.error(f"Failed to set up webhooks: {e}") 
+        logger.error(f"Failed to initialize bots and set up webhooks: {e}") 
+        raise
         
-    logger.info("Shutting down the app...")
-    yield  
+    yield
+    
+    # Cleanup on shutdown
+    try:
+        if Config.MIRROR_ENABLED:
+            await mirror_router.bot_app.shutdown()
+        if Config.VERIFICATION_ENABLED:
+            await verification_router.bot_app.shutdown()
+    except Exception as e:
+        logger.error(f"Error during shutdown: {e}")  
           
     # yield
     # yield
