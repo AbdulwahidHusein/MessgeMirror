@@ -284,6 +284,29 @@ async def handle_enable_mirroring(update: Update, context: ContextTypes.DEFAULT_
             text="Message mirroring is already enabled."
         )
 
+async def get_delete_numof_days(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handles the input for number of days for message deletion."""
+    try:
+        days = int(update.message.text.strip())
+        if days <= 0:
+            await update.message.reply_text("Please enter a positive number of days.")
+            return WAITING_DELETE_OLD_MESSAGES_NUM_OF_DAYS
+            
+        buttons = [[InlineKeyboardButton(
+            text=f"Confirm Delete Messages Older Than {days} Days",
+            callback_data=f"delete_messages:{days}"
+        )]]
+        
+        await update.message.reply_text(
+            f"Are you sure you want to delete messages older than {days} days?",
+            reply_markup=InlineKeyboardMarkup(buttons)
+        )
+        return WAITING_DELETE_OLD_MESSAGES_CONFIRM
+        
+    except ValueError:
+        await update.message.reply_text("Please enter a valid number.")
+        return WAITING_DELETE_OLD_MESSAGES_NUM_OF_DAYS
+
 def register(application: Application):
     """Registers all settings-related handlers."""
     # Main settings command
