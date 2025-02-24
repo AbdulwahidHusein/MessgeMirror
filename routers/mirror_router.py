@@ -45,13 +45,19 @@ async def webhook(request: Request) -> Dict[str, str]:
         # Handle private messages
         elif is_private_message(webhook_data) or webhook_data.callback_query:
             update = Update.de_json(raw_data, bot_app.bot)
-            user = webhook_data.message['from']
+            
+            # Get user info differently for messages and callback queries
+            if webhook_data.callback_query:
+                user = webhook_data.callback_query['from']
+            else:
+                user = webhook_data.message['from']
 
             if is_admin(user['username']):
                 await bot_app.process_update(update)
             else:
+                chat_id = user['id']
                 await bot_app.bot.send_message(
-                    chat_id=user['id'], 
+                    chat_id=chat_id,
                     text="You are not authorized to use this bot"
                 )
 
